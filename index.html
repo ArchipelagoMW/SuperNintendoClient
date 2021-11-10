@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AP Super Nintendo Client ({{game}} Mode)</title>
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline';" />
+    <link rel="stylesheet" href="styles/index.css" />
+    <link rel="stylesheet" href="styles/header.css" />
+    <link rel="stylesheet" href="styles/sidebar.css" />
+    <link rel="stylesheet" href="styles/console.css" />
+    <script type="application/ecmascript" src="assets/globals.js"></script>
+    <script type="application/ecmascript" src="{{romDataFile}}"></script>
+    <script type="application/ecmascript" src="assets/header.js"></script>
+    <script type="application/ecmascript" src="assets/sidebar.js"></script>
+    <script type="application/ecmascript" src="assets/console.js"></script>
+    <script type="application/ecmascript" src="assets/snesInterface.js"></script>
+    <script type="application/ecmascript" src="assets/serverSocket.js"></script>
+</head>
+<body>
+    <div id="main-content">
+        <div id="header">
+            <table>
+                <tr>
+                    <td><label for="snes-device">SNES Device:</label></td>
+                    <td>
+                        <select id="snes-device" disabled>
+                            <option>Waiting for devices...</option>
+                        </select>
+                        &nbsp;
+                        <span id="snes-device-refresh">🔃</span>
+                    </td>
+                </tr>
+            </table>
+            <table>
+                <tr>
+                    <td><label for="server-address">Server:</label></td>
+                    <td><input id="server-address" /></td>
+                </tr>
+                <tr>
+                    <td>Status:</td>
+                    <td id="server-status" class="disconnected">Not Connected</td>
+                </tr>
+            </table>
+            <div class="spacer"></div>
+            <div>
+                <table>
+                    <tr>
+                        <td>Text Size:</td>
+                        <td>
+                            <button id="small-text">Small</button>
+                            <button id="medium-text">Medium</button>
+                            <button id="large-text">Large</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Receive Items:</td>
+                        <td id="receive-items-control">
+                            <span id="receive-items-status" class="enabled">Enabled</span>
+                            <div class="spacer"></div>
+                            <button id="receive-items-toggle">Toggle</button>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div id="console-output-wrapper">
+            <!-- Console messages will appear here as divs -->
+        </div>
+        <div id="console-input-wrapper">
+            <label for="console-input">Command:</label>
+            <input id="console-input" placeholder="Enter a chat message, slash command, or use /help" />
+        </div>
+    </div>
+    <div id="sidebar">
+        <button id="sidebar-toggle-button">↪</button>
+        <div id="sidebar-content-wrapper">
+            <h2>Info Panel</h2>
+            <table id="info-table">
+                <tbody>
+                <tr>
+                    <td>Client Version:</td>
+                    <td id="client-version"></td>
+                </tr>
+                <tr>
+                    <td>Server Version:</td>
+                    <td id="server-version"></td>
+                </tr>
+                <tr>
+                    <td>Forfeit Mode:</td>
+                    <td id="forfeit-mode"></td>
+                </tr>
+                <tr>
+                    <td>Remaining Mode:</td>
+                    <td id="remaining-mode"></td>
+                </tr>
+                <tr>
+                    <td>Points Per Check:</td>
+                    <td id="points-per-check"></td>
+                </tr>
+                <tr>
+                    <td>Hint Cost:</td>
+                    <td id="hint-cost"></td>
+                </tr>
+                <tr>
+                    <td>Hint Points:</td>
+                    <td id="hint-points"></td>
+                </tr>
+                </tbody>
+            </table>
+            <div id="notes-wrapper">
+                <label for="notes">Notes:</label>
+                <textarea id="notes"></textarea>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

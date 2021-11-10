@@ -1,0 +1,49 @@
+{
+  "name": "z3client",
+  "version": "0.18.2",
+  "author": "Chris Wilson",
+  "description": "A Z3 client designed to replace the old Python Z3 client in the Archipelago MultiWorld ecosystem.",
+  "license": "MIT",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "electron-rebuild": "electron-rebuild",
+    "package-win": "electron-forge package --platform win32 --arch x64",
+    "make-win": "electron-forge make --platform win32 --arch x64",
+    "package-linux": "electron-forge package --platform linux --arch x64",
+    "make-linux": "electron-forge make --platform linux --arch x64"
+  },
+  "homepage": "https://github.com/ArchipelagoMW/Z3Client#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ArchipelagoMW/Z3Client.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ArchipelagoMW/Z3Client/issues"
+  },
+  "dependencies": {
+    "@grpc/grpc-js": "^1.4.4",
+    "bsdiff-node": "^2.4.0",
+    "electron-squirrel-startup": "^1.0.0",
+    "google-protobuf": "^3.19.1",
+    "handlebars": "^4.7.7",
+    "js-yaml": "^4.1.0",
+    "lzma-native": "^8.0.1",
+    "md5": "^2.3.0",
+    "path": "^0.12.7",
+    "winreg": "^1.2.4",
+    "ws": "^8.2.3"
+  },
+  "devDependencies": {
+    "@electron-forge/cli": "^6.0.0-beta.61",
+    "@electron-forge/maker-deb": "^6.0.0-beta.61",
+    "@electron-forge/maker-rpm": "^6.0.0-beta.61",
+    "@electron-forge/maker-squirrel": "^6.0.0-beta.61",
+    "@electron-forge/maker-zip": "^6.0.0-beta.61",
+    "electron": "^15.3.1",
+    "electron-rebuild": "^3.2.4"
+  },
+  "config": {
+    "forge": "./forge.config.js"
+  }
+}

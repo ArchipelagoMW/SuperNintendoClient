@@ -1,0 +1,30 @@
+#header{
+    display: flex;
+    flex-direction: row;
+}
+
+#header .connected{
+    color: #01d501;
+}
+
+#header .disconnected{
+    color: red;
+}
+
+#receive-items-control{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+#receive-items-control #receive-items-status.enabled{
+    color: #01d501;
+}
+
+#receive-items-control #receive-items-status.disabled{
+    color: red;
+}
+
+#snes-device-refresh{
+    cursor: pointer;
+}
