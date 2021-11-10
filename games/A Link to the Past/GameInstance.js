@@ -34,7 +34,7 @@ class GameInstance {
   authenticate = async () => {
       // Build tags used in authentication below
     const tags = ['Super Nintendo Client'];
-    if (deathLinkEnabled) { tags.push('DeathLink'); }
+    if (this.deathLinkEnabled) { tags.push('DeathLink'); }
 
     // Authenticate with the server
     const romName = await readFromAddress(ROMNAME_START, ROMNAME_SIZE);
@@ -62,79 +62,79 @@ class GameInstance {
     const locationIds = Object.keys(apLocationsById['A Link to the Past']);
     const locationNames = Object.values(apLocationsById['A Link to the Past']);
 
-    Object.keys(UNDERWORLD_LOCATIONS).forEach((uwLocationName) => {
+    Object.keys(romData.UNDERWORLD_LOCATIONS).forEach((uwLocationName) => {
       this.locationsById['underworld'][locationIds[locationNames.indexOf(uwLocationName)]] = {
         name: uwLocationName,
         locationId: Number(locationIds[locationNames.indexOf(uwLocationName)]),
-        roomId: UNDERWORLD_LOCATIONS[uwLocationName][0],
-        mask: UNDERWORLD_LOCATIONS[uwLocationName][1],
+        roomId: romData.UNDERWORLD_LOCATIONS[uwLocationName][0],
+        mask: romData.UNDERWORLD_LOCATIONS[uwLocationName][1],
       }
 
-      if (!this.locationsByRoomId['underworld'].hasOwnProperty(UNDERWORLD_LOCATIONS[uwLocationName][0])) {
-        this.locationsByRoomId['underworld'][UNDERWORLD_LOCATIONS[uwLocationName][0]] = [];
+      if (!this.locationsByRoomId['underworld'].hasOwnProperty(romData.UNDERWORLD_LOCATIONS[uwLocationName][0])) {
+        this.locationsByRoomId['underworld'][romData.UNDERWORLD_LOCATIONS[uwLocationName][0]] = [];
       }
-      this.locationsByRoomId['underworld'][UNDERWORLD_LOCATIONS[uwLocationName][0]].push({
+      this.locationsByRoomId['underworld'][romData.UNDERWORLD_LOCATIONS[uwLocationName][0]].push({
         name: uwLocationName,
         locationId: Number(locationIds[locationNames.indexOf(uwLocationName)]),
-        roomId: UNDERWORLD_LOCATIONS[uwLocationName][0],
-        mask: UNDERWORLD_LOCATIONS[uwLocationName][1],
+        roomId: romData.UNDERWORLD_LOCATIONS[uwLocationName][0],
+        mask: romData.UNDERWORLD_LOCATIONS[uwLocationName][1],
       });
     });
 
-    Object.keys(OVERWORLD_LOCATIONS).forEach((owLocationName) => {
+    Object.keys(romData.OVERWORLD_LOCATIONS).forEach((owLocationName) => {
       this.locationsById['overworld'][locationIds[locationNames.indexOf(owLocationName)]] = {
         name: owLocationName,
         locationId: Number(locationIds[locationNames.indexOf(owLocationName)]),
-        screenId: OVERWORLD_LOCATIONS[owLocationName],
+        screenId: romData.OVERWORLD_LOCATIONS[owLocationName],
         mask: null,
       };
 
-      if (!this.locationsByRoomId['overworld'].hasOwnProperty(OVERWORLD_LOCATIONS[owLocationName])) {
-        this.locationsByRoomId['overworld'][OVERWORLD_LOCATIONS[owLocationName]] = [];
+      if (!this.locationsByRoomId['overworld'].hasOwnProperty(romData.OVERWORLD_LOCATIONS[owLocationName])) {
+        this.locationsByRoomId['overworld'][romData.OVERWORLD_LOCATIONS[owLocationName]] = [];
       }
-      this.locationsByRoomId['overworld'][OVERWORLD_LOCATIONS[owLocationName]].push({
+      this.locationsByRoomId['overworld'][romData.OVERWORLD_LOCATIONS[owLocationName]].push({
         name: owLocationName,
         locationId: Number(locationIds[locationNames.indexOf(owLocationName)]),
-        screenId: OVERWORLD_LOCATIONS[owLocationName],
+        screenId: romData.OVERWORLD_LOCATIONS[owLocationName],
         mask: null,
       });
     });
 
-    Object.keys(NPC_LOCATIONS).forEach((npcLocationName) => {
+    Object.keys(romData.NPC_LOCATIONS).forEach((npcLocationName) => {
       this.locationsById['npc'][locationIds[locationNames.indexOf(npcLocationName)]] = {
         name: npcLocationName,
         locationId: Number(locationIds[locationNames.indexOf(npcLocationName)]),
-        screenId: NPC_LOCATIONS[npcLocationName],
+        screenId: romData.NPC_LOCATIONS[npcLocationName],
         mask: null,
       };
 
-      if (!this.locationsByRoomId['npc'].hasOwnProperty(NPC_LOCATIONS[npcLocationName])) {
-        this.locationsByRoomId['npc'][NPC_LOCATIONS[npcLocationName]] = [];
+      if (!this.locationsByRoomId['npc'].hasOwnProperty(romData.NPC_LOCATIONS[npcLocationName])) {
+        this.locationsByRoomId['npc'][romData.NPC_LOCATIONS[npcLocationName]] = [];
       }
-      this.locationsByRoomId['npc'][NPC_LOCATIONS[npcLocationName]].push({
+      this.locationsByRoomId['npc'][romData.NPC_LOCATIONS[npcLocationName]].push({
         name: npcLocationName,
         locationId: Number(locationIds[locationNames.indexOf(npcLocationName)]),
-        screenId: NPC_LOCATIONS[npcLocationName],
+        screenId: romData.NPC_LOCATIONS[npcLocationName],
         mask: null,
       });
     });
 
-    Object.keys(MISC_LOCATIONS).forEach((miscLocationName) => {
+    Object.keys(romData.MISC_LOCATIONS).forEach((miscLocationName) => {
       this.locationsById['misc'][locationIds[locationNames.indexOf(miscLocationName)]] = {
         name: miscLocationName,
         locationId: Number(locationIds[locationNames.indexOf(miscLocationName)]),
-        roomId: MISC_LOCATIONS[miscLocationName][0],
-        mask: MISC_LOCATIONS[miscLocationName][1],
+        roomId: romData.MISC_LOCATIONS[miscLocationName][0],
+        mask: romData.MISC_LOCATIONS[miscLocationName][1],
       };
 
-      if (!this.locationsByRoomId['misc'].hasOwnProperty(MISC_LOCATIONS[miscLocationName][0])) {
-        this.locationsByRoomId['misc'][MISC_LOCATIONS[miscLocationName][0]] = [];
+      if (!this.locationsByRoomId['misc'].hasOwnProperty(romData.MISC_LOCATIONS[miscLocationName][0])) {
+        this.locationsByRoomId['misc'][romData.MISC_LOCATIONS[miscLocationName][0]] = [];
       }
-      this.locationsByRoomId['misc'][MISC_LOCATIONS[miscLocationName][0]].push({
+      this.locationsByRoomId['misc'][romData.MISC_LOCATIONS[miscLocationName][0]].push({
         name: miscLocationName,
         locationId: Number(locationIds[locationNames.indexOf(miscLocationName)]),
-        roomId: MISC_LOCATIONS[miscLocationName][0],
-        mask: MISC_LOCATIONS[miscLocationName][1],
+        roomId: romData.MISC_LOCATIONS[miscLocationName][0],
+        mask: romData.MISC_LOCATIONS[miscLocationName][1],
       });
     });
   };
@@ -342,7 +342,7 @@ class GameInstance {
 
       // Fetch information from the SNES about items it has received, and compare that against local data.
       // This fetch includes data about the room the player is currently inside of
-      const receivedItems = await readFromAddress(RECEIVED_ITEMS_INDEX, 0x08);
+      const receivedItems = await readFromAddress(romData.RECEIVED_ITEMS_INDEX, 0x08);
       const romItemsReceived = receivedItems[0] | (receivedItems[1] << 8);
       const linkIsBusy = receivedItems[2];
       const roomId = receivedItems[4] | (receivedItems[5] << 8);
@@ -358,12 +358,12 @@ class GameInstance {
           (romItemsReceived + 1) & 0xFF,
           ((romItemsReceived + 1) >> 8) & 0xFF,
         ]);
-        await writeToAddress(RECEIVED_ITEMS_INDEX, indexData);
+        await writeToAddress(romData.RECEIVED_ITEMS_INDEX, indexData);
 
         // Send the item to the SNES
         const itemData = new Uint8Array(1);
         itemData.set([this.itemsReceived[romItemsReceived].item])
-        await writeToAddress(RECEIVED_ITEM_ADDRESS, itemData);
+        await writeToAddress(romData.RECEIVED_ITEM_ADDRESS, itemData);
 
         // Tell the SNES the id of the player who sent the item
         const senderData = new Uint8Array(1);
@@ -374,7 +374,7 @@ class GameInstance {
             Math.min(this.itemsReceived[romItemsReceived].player, 255)
           )
         ]);
-        await writeToAddress(RECEIVED_ITEM_SENDER_ADDRESS, senderData);
+        await writeToAddress(romData.RECEIVED_ITEM_SENDER_ADDRESS, senderData);
       }
 
       // If the player's current location has a scout item (an item laying on the ground), we need to
@@ -394,29 +394,29 @@ class GameInstance {
           // update the SNES with information about the item
           const locationData = new Uint8Array(1);
           locationData.set([scoutLocation]);
-          await writeToAddress(SCOUTREPLY_LOCATION_ADDR, locationData);
+          await writeToAddress(romData.SCOUTREPLY_LOCATION_ADDR, locationData);
 
           const scoutItemData = new Uint8Array(1);
           scoutItemData.set([this.scoutedLocations[scoutLocation].item]);
-          await writeToAddress(SCOUTREPLY_ITEM_ADDR, scoutItemData);
+          await writeToAddress(romData.SCOUTREPLY_ITEM_ADDR, scoutItemData);
 
           const playerData = new Uint8Array(1);
           playerData.set([this.scoutedLocations[scoutLocation].player]);
-          await writeToAddress(SCOUTREPLY_PLAYER_ADDR, playerData);
+          await writeToAddress(romData.SCOUTREPLY_PLAYER_ADDR, playerData);
         }
       }
 
       // If the player is currently inside a shop
-      if (shopIds.indexOf(roomId) > -1) {
+      if (romData.shopIds.indexOf(roomId) > -1) {
         // Request shop data from every shop in the game
-        const requestLength = (Object.keys(SHOPS).length * 3) + 5;
-        const shopData = await readFromAddress(SHOP_ADDR, requestLength);
+        const requestLength = (Object.keys(romData.SHOPS).length * 3) + 5;
+        const shopData = await readFromAddress(romData.SHOP_ADDR, requestLength);
         // Update the purchase status of every item in every shop. This is important because
         // multiple shops can sell the same item, like a quiver when in retro mode
         const newChecks = [];
         for (let index = 0; index < requestLength; ++index) {
-          if (shopData[index] && this.checkedLocations.indexOf(SHOP_ID_START + index) === -1) {
-            newChecks.push(SHOP_ID_START + index)
+          if (shopData[index] && this.checkedLocations.indexOf(romData.SHOP_ID_START + index) === -1) {
+            newChecks.push(romData.SHOP_ID_START + index)
           }
         }
         if (newChecks.length > 0) { this.sendLocationChecks(newChecks); }

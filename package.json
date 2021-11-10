@@ -1,8 +1,8 @@
 {
-  "name": "z3client",
-  "version": "0.18.2",
+  "name": "super-nintendo-client",
+  "version": "0.10.0",
   "author": "Chris Wilson",
-  "description": "A Z3 client designed to replace the old Python Z3 client in the Archipelago MultiWorld ecosystem.",
+  "description": "A Super Nintendo Client designed to allow multiple games to connect to an Archipelago server.",
   "license": "MIT",
   "main": "main.js",
   "scripts": {
@@ -13,13 +13,13 @@
     "package-linux": "electron-forge package --platform linux --arch x64",
     "make-linux": "electron-forge make --platform linux --arch x64"
   },
-  "homepage": "https://github.com/ArchipelagoMW/Z3Client#readme",
+  "homepage": "https://github.com/ArchipelagoMW/SuperNintendoClient#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ArchipelagoMW/Z3Client.git"
+    "url": "git+https://github.com/ArchipelagoMW/SuperNintendoClient.git"
   },
   "bugs": {
-    "url": "https://github.com/ArchipelagoMW/Z3Client/issues"
+    "url": "https://github.com/ArchipelagoMW/SuperNintendoClient/issues"
   },
   "dependencies": {
     "@grpc/grpc-js": "^1.4.4",

@@ -9,21 +9,22 @@ const childProcess = require('child_process');
 const md5 = require('md5');
 const Handlebars = require('handlebars');
 const SNI = require('./SNI');
+const games = require("games/games.json");
 
 // Control variable for SNI to prevent multiple rapid launches
 let lastSNILaunchAttempt = 0;
 
 // Determine user's config file path based on OS
 const configDir = (process.platform === 'win32') ?
-  path.join(process.env.APPDATA, 'z3client-info') : // Windows
-  path.join(os.homedir(), '.z3client-info'); // Mac + Linux
+  path.join(process.env.APPDATA, 'super-nintendo-client-info') : // Windows
+  path.join(os.homedir(), '.super-nintendo-client-info'); // Mac + Linux
 if (!fs.existsSync(configDir)) { fs.mkdirSync(configDir, { recursive: true }); }
-const configPath = path.join(configDir, 'z3client.config.json');
+const configPath = path.join(configDir, 'super-nintendo-client.config.json');
 
 // Determine user's log directory based on OS
 const logDir = (process.platform === 'win32') ?
-  path.join(process.env.APPDATA, 'z3client-info', 'logs') : // Windows
-  path.join(os.homedir(), '.z3client-info', 'logs'); // Mac + Linux
+  path.join(process.env.APPDATA, 'super-nintendo-client-info', 'logs') : // Windows
+  path.join(os.homedir(), '.super-nintendo-client-info', 'logs'); // Mac + Linux
 if (!fs.existsSync(logDir)) { fs.mkdirSync(logDir, { recursive: true }); }
 
 // Catch and log any uncaught errors that occur in the main process
@@ -78,38 +79,44 @@ const launchSNI = () => {
 // Perform certain actions during the install process
 if (require('electron-squirrel-startup')) {
   if (process.platform === 'win32') {
+
     // Prepare to add registry entries for .apbp files
     const Registry = require('winreg');
-    const exePath = path.join(process.env.LOCALAPPDATA, 'Z3Client', 'Z3Client.exe');
+    const exePath = path.join(process.env.LOCALAPPDATA, 'SuperNintendoClient', 'SuperNintendoClient.exe');
+
+    const games = require('games/games.json');
+    Object.keys(games).forEach((game) => {
+      // TODO: Write registry entries for each game's extensions and icons
+    });
 
     // Set file type description for .apbp files
     const descriptionKey = new Registry({
       hive: Registry.HKCU,
-      key: '\\Software\\Classes\\archipelago.z3client.v1',
+      key: '\\Software\\Classes\\archipelago.super-nintendo-client.v1',
     });
     descriptionKey.set(Registry.DEFAULT_VALUE, Registry.REG_SZ, 'Archipelago Binary Patch',
       (error) => console.error(error));
 
-    // Set icon for .apbp files
+    // Set icon for patch files
     const iconKey = new Registry({
       hive: Registry.HKCU,
-      key: '\\Software\\Classes\\archipelago.z3client.v1\\DefaultIcon',
+      key: '\\Software\\Classes\\archipelago.super-nintendo-client.v1\\DefaultIcon',
     });
     iconKey.set(Registry.DEFAULT_VALUE, Registry.REG_SZ, `${exePath},0`, (error) => console.error(error));
 
-    // Set set default program for launching .apbp files (Z3Client)
+    // Set set default program for launching .patch files (SuperNintendoClient)
     const commandKey = new Registry({
       hive: Registry.HKCU,
-      key: '\\Software\\Classes\\archipelago.z3client.v1\\shell\\open\\command'
+      key: '\\Software\\Classes\\archipelago.super-nintendo-client.v1\\shell\\open\\command'
     });
     commandKey.set(Registry.DEFAULT_VALUE, Registry.REG_SZ, `"${exePath}" "%1"`, (error) => console.error(error));
 
-    // Set .apbp files to launch with Z3Client
+    // Set patch files to launch with SuperNintendoClient
     const extensionKey = new Registry({
       hive: Registry.HKCU,
       key: '\\Software\\Classes\\.apbp',
     });
-    extensionKey.set(Registry.DEFAULT_VALUE, Registry.REG_SZ, 'archipelago.z3client.v1',
+    extensionKey.set(Registry.DEFAULT_VALUE, Registry.REG_SZ, 'archipelago.super-nintendo-client.v1',
       (error) => console.error(error));
   }
 
@@ -151,6 +158,9 @@ app.whenReady().then(async () => {
   const config = JSON.parse(fs.readFileSync(configPath).toString());
   const baseRomHash = '03a63945398191337e896e5771f77173';
 
+  // TODO: Detect which patch file was used to launch the client, if any
+
+  // TODO: Prompt for and save the base rom per-game
   // Prompt for base rom file if not present in config, missing from disk, or the hash fails
   if (
     !config.hasOwnProperty('baseRomPath') || // Base ROM has not been specified in the past
@@ -208,6 +218,7 @@ app.whenReady().then(async () => {
     }
   }
 
+  // TODO: Figure out what to do if no patch file is given
   createWindow();
 
   app.on('activate', () => {

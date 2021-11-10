@@ -2,23 +2,16 @@
 const CLIENT_VERSION = {
   state: 'Beta',
   major: 0,
-  minor: 18,
-  patch: 2,
+  minor: 10,
+  patch: 0,
 };
 
 const ARCHIPELAGO_PROTOCOL_VERSION = {
   major: 0,
-  minor: 1,
-  build: 9,
+  minor: 2,
+  build: 0,
   class: 'Version',
 };
-
-// Archipelago server
-const DEFAULT_SERVER_PORT = 38281;
-let serverSocket = null;
-let lastServerAddress = null;
-let serverPassword = null;
-let serverAuthError = false;
 
 const permissionMap = {
   0: 'Disabled',
@@ -28,31 +21,11 @@ const permissionMap = {
   7: 'Enabled + Auto',
 };
 
-// Players in the current game, received from Connected server packet
-let playerSlot = null;
-let playerTeam = null;
-let players = [];
-let hintCost = null;
-
-// Location and item maps, populated from localStorage
-let itemsById = {};
-
-// Object matting locationId to locationName
-let locationMap = {};
-
-// Prebuilt maps of item/location data to prevent doing work more than once
-const locationsById = {
-  underworld: {},
-  overworld: {},
-  npc: {},
-  misc: {},
-};
-const locationsByRoomId = {
-  underworld: {},
-  overworld: {},
-  npc: {},
-  misc: {},
-};
+// Item and location maps
+let apItemsById = {};
+let apItemsByName = {};
+let apLocationsById = {};
+let apLocationsByName = {};
 
 // Data shared between main and renderer processes
 let sharedData = {};
@@ -60,9 +33,8 @@ let sharedData = {};
 // The user has the option to pause receiving items
 let receiveItems = true;
 
-// For those who hate shields
-const shieldNames = ['Blue Shield', 'Red Shield', 'Mirror Shield', 'Progressive Shield'];
-let receiveShields = true;
-
 // Tracks if automatic scrolling is currently paused
 let autoScrollPaused = false;
+
+// Game-specific handlers
+let gameInstance = null;

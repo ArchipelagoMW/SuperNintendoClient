@@ -131,24 +131,3 @@ const writeToAddress = (hexOffset, data) => new Promise((resolve, reject) => {
       reject(err);
     });
 });
-
-/**
- * Kill Link
- * https://www.youtube.com/watch?v=mSsOrOjfyvg&t=57s
- * @returns {Promise<void>}
- */
-const killLink = async () => {
-  // Set link as dead, so we don't accept any DeathLink packets
-  linkIsDead = linkIsStillDead = true;
-  lastForcedDeath = new Date().getTime();
-
-  // Set the current health value to zero
-  let killLinkPartOne = new Uint8Array(1);
-  killLinkPartOne.set([0]);
-  await writeToAddress(WRAM_START + 0xF36D, killLinkPartOne);
-
-  // Deal eight damage to Link
-  let killLinkPartTwo = new Uint8Array(1);
-  killLinkPartTwo.set([8]);
-  await writeToAddress(WRAM_START + 0x0373, killLinkPartTwo);
-};

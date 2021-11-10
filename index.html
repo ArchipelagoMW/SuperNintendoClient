@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="styles/sidebar.css" />
     <link rel="stylesheet" href="styles/console.css" />
     <script type="application/ecmascript" src="assets/globals.js"></script>
+    <script type="application/ecmascript" src="{{gameInstanceFile}}"></script>
     <script type="application/ecmascript" src="{{romDataFile}}"></script>
     <script type="application/ecmascript" src="assets/header.js"></script>
     <script type="application/ecmascript" src="assets/sidebar.js"></script>
@@ -17,7 +18,7 @@
     <script type="application/ecmascript" src="assets/serverSocket.js"></script>
 </head>
 <body>
-    <div id="main-content">
+    <div id="main-content" data-game="{{game}}">
         <div id="header">
             <table>
                 <tr>

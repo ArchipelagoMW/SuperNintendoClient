@@ -1,12 +1,8 @@
 {
-  "games": {
-    "zelda3": {
-      "name": "The Legend of Zelda: A Link to the Past",
-      "iconFile": "icon.ico"
-    },
-    "super-metroid": {
-      "name": "Super Metroid",
-      "iconFile": "icon.ico"
-    }
+  "A Link to the Past": {
+    "extensions": [".apbp", ".apz5"]
+  },
+  "Super Metroid": {
+    "extensions": [".apm3"]
   }
 }
