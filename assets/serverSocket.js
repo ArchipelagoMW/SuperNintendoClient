@@ -41,7 +41,7 @@ window.addEventListener('load', async () => {
 
     const romDataScript = document.createElement('script');
     romDataScript.setAttribute('type', 'application/ecmascript');
-    romDataScript.setAttribute('src', `games/${game}/romData.js`);
+    romDataScript.setAttribute('src', `games/${game}/RomData.js`);
     document.head.appendChild(romDataScript);
   }
 
