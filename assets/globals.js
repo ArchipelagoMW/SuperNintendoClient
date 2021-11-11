@@ -36,5 +36,6 @@ let receiveItems = true;
 // Tracks if automatic scrolling is currently paused
 let autoScrollPaused = false;
 
-// Game-specific handlers
+// Game-specific handler
+let gameLogicLoaded = false;
 let gameInstance = null;

@@ -24,6 +24,11 @@ contextBridge.exposeInMainWorld('sni', {
   writeToAddress: (address, data) => ipcRenderer.invoke('writeToAddress', [address, data]),
 });
 
+// General data exchange
+contextBridge.exposeInMainWorld('dataExchange', {
+  getGame: () => ipcRenderer.invoke('getGame'),
+});
+
 // Used for logging
 contextBridge.exposeInMainWorld('logging', {
   writeToLog: (data) => ipcRenderer.invoke('writeToLog', data),

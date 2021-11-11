@@ -7,9 +7,9 @@ const yaml = require('js-yaml');
 const bsdiff = require('bsdiff-node');
 const childProcess = require('child_process');
 const md5 = require('md5');
-const Handlebars = require('handlebars');
+const ejs = require('ejs');
 const SNI = require('./SNI');
-const games = require("games/games.json");
+const games = require("./games/games.json");
 
 // Control variable for SNI to prevent multiple rapid launches
 let lastSNILaunchAttempt = 0;
@@ -148,6 +148,9 @@ const createWindow = () => {
   });
 };
 
+// Used in general data exchange during IPC operations
+let game = 'A Link to the Past';
+
 app.whenReady().then(async () => {
   // Create the local config file if it does not exist
   if (!fs.existsSync(configPath)) {
@@ -157,72 +160,114 @@ app.whenReady().then(async () => {
   // Load the config into memory
   const configData = fs.readFileSync(configPath).toString();
   const config = configData ? JSON.parse(configData) : {};
-  const baseRomHash = '03a63945398191337e896e5771f77173';
 
-  // TODO: Detect which patch file was used to launch the client, if any
-
-
-  // TODO: Prompt for and save the base rom per-game
-  // Prompt for base rom file if not present in config, missing from disk, or the hash fails
-  if (
-    !config.hasOwnProperty('baseRomPath') || // Base ROM has not been specified in the past
-    !fs.existsSync(config.baseRomPath) || // Base ROM no longer exists
-    md5(fs.readFileSync(config.baseRomPath)) !== baseRomHash // The base ROM hash is wrong (user chose the wrong file)
-  ) {
-    let baseRomPath = await dialog.showOpenDialog(null, {
-      title: 'Select base ROM',
-      buttonLabel: 'Choose ROM',
-      message: 'Choose a base ROM to be used when patching.',
-    });
-    // Save base rom filepath back to config file
-    if (!baseRomPath.canceled && baseRomPath.filePaths.length > 0) {
-      config.baseRomPath = baseRomPath.filePaths[0];
-      fs.writeFileSync(configPath, JSON.stringify(Object.assign({}, config, {
-        baseRomPath: config.baseRomPath,
-      })));
-    }
-  }
-
-  // Create a new ROM from the patch file if the patch file is provided and the base rom is known
-  for (const arg of process.argv) {
-    if (arg.substr(-5).toLowerCase() === '.apbp') {
-      if (config.hasOwnProperty('baseRomPath') && fs.existsSync(config.baseRomPath)) {
-        if (md5(fs.readFileSync(config.baseRomPath)) !== baseRomHash) {
-          dialog.showMessageBoxSync({
-            type: 'info',
-            title: 'Invalid Base ROM',
-            message: 'The ROM file for your game could not be created because the base ROM is invalid.',
-          });
+  // Detect which patch file was used to launch the client, if any
+  let patchFilePath = null;
+  for (let arg of process.argv) {
+    // Ignore the Electron path arg in a dev environment
+    if (arg === '.') { continue; }
+    for (let gameName of Object.keys(games)) {
+      for (let extension of games[gameName].extensions) {
+        if (arg.endsWith(extension)) {
+          patchFilePath = arg;
+          game = gameName;
           break;
-        }
-
-        if (!fs.existsSync(arg)) { break; }
-        const patchFilePath = path.join(__dirname, 'patch.bsdiff');
-        const romFilePath = path.join(path.dirname(arg),
-          `${path.basename(arg).substr(0, path.basename(arg).length - 5)}.sfc`);
-        const apbpBuffer = await lzma.decompress(fs.readFileSync(arg));
-        const apbp = yaml.load(apbpBuffer);
-        sharedData.apServerAddress = apbp.meta.server ? apbp.meta.server : null;
-        fs.writeFileSync(patchFilePath, apbp.patch);
-        await bsdiff.patch(config.baseRomPath, romFilePath, patchFilePath);
-        fs.rmSync(patchFilePath);
-        // If a custom launcher is specified, attempt to launch the ROM file using the specified loader
-        if (config.hasOwnProperty('launcherPath') && fs.existsSync(config.launcherPath)) {
-          childProcess.spawn(config.launcherPath, [romFilePath], { detached: true });
-          break;
-        }
-        // If no custom launcher is specified, launch the rom with explorer on Windows
-        if (process.platform === 'win32') {
-          childProcess.spawn('explorer', [romFilePath], { detached: true });
         }
       }
-      break;
     }
   }
 
-  // TODO: Figure out what to do if no patch file is given
-  createWindow();
+  // Perform a series of actions if the target game is known
+  if (game) {
+    // Create config object for this game if it doesn't exist
+    if (!config.hasOwnProperty(game)) {
+      config[game] = {
+        baseRomPath: null,
+        launcherPath: null,
+      };
+    }
 
+    // Prompt for a base rom if the current base rom is unacceptable
+    if (
+      !config[game].hasOwnProperty('baseRomPath') || // Config data is missing
+      !config[game].baseRomPath || // Config data is empty
+      !fs.existsSync(config[game].baseRomPath) || // Local file does not exist
+      !md5(fs.readFileSync(config[game].baseRomPath)) === config[game].md5Hash // Base rom fails hash check
+    ) {
+      config[game].baseRomPath = null;
+      let newBaseRomPath = null;
+      while (!config[game].baseRomPath) {
+        newBaseRomPath = await dialog.showOpenDialog(null, {
+          title: `Select base ROM for ${game}`,
+          buttonLabel: 'Choose ROM',
+          message: 'Choose a base ROM to be used when patching.',
+        });
+
+        // If the user cancels the base rom box or does not select a file
+        if (newBaseRomPath.canceled || newBaseRomPath.filePaths.length === 0) {
+          const skipPatching = await dialog.showMessageBox(null, {
+            type: 'info',
+            title: 'Base ROM Not Provided',
+            message: 'If you do not provide a base ROM, the client will skip the patching process.',
+            buttons: ['Choose ROM...', 'Skip Patching'],
+          });
+
+          // If the user clicked on "Skip Patching", don't prompt them anymore
+          if (skipPatching) { break; }
+        }
+
+        // If the user selects a base rom which does not validate against the hash
+        if (!md5(fs.readFileSync(newBaseRomPath.filePaths[0])) === config[game].md5Hash) {
+          const skipBaseRom = await dialog.showMessageBox(null, {
+            type: 'info',
+            title: 'Invalid Base ROM Selected',
+            message: 'The base ROM file you chose did not validate against the known hash. ' +
+              'Please choose a different file.',
+            buttons: ['Choose ROM...', 'Skip Patching'],
+          });
+
+          if (skipBaseRom) { break; }
+        }
+
+        // User selected a valid base ROM path
+        config[game].baseRomPath = newBaseRomPath.filePaths[0];
+      }
+    }
+
+    // If the user provided a base ROM and a patch file, patch the base ROM
+    if (config[game].baseRomPath && patchFilePath && fs.existsSync(patchFilePath)) {
+      const diffFilePath = path.join(__dirname, 'patch.bsdiff');
+      const patchFileExt = patchFilePath.split('.').pop();
+      const outputFilePath = path.join(path.dirname(patchFilePath),
+        `${path.basename(patchFilePath).substr(0, path.basename(patchFilePath).length - patchFileExt.length)}`)
+      const apbpBuffer = await lzma.decompress(fs.readFileSync(patchFilePath));
+      const apbp = yaml.load(apbpBuffer);
+      sharedData.apServerAddress = apbp.meta.server ? apbp.meta.server : null;
+      fs.writeFileSync(diffFilePath, apbp.patch);
+      await bsdiff.patch(config[game].baseRomPath, outputFilePath, diffFilePath);
+      fs.rmSync(diffFilePath);
+
+      // If a custom launcher is specified, attempt to launch the ROM file using the specified loader
+      if (config[game].hasOwnProperty('launcherPath') && fs.existsSync(config[game].launcherPath)) {
+        childProcess.spawn(config[game].launcherPath, [outputFilePath], { detached: true });
+      } else if (process.platform === 'win32') {
+        // If no custom launcher is specified, launch the rom with explorer on Windows
+        childProcess.spawn('explorer', [romFilePath], { detached: true });
+      }
+    }
+  }
+
+  // If no patch file is given, display a prompt for the user to choose their game
+  if (!game) {
+    // TODO: Display a prompt for the user to choose their game logic
+    createWindow();
+  } else {
+    // Spawn the chromium window
+    // TODO: Modify this function to accept a game parameter
+    createWindow();
+  }
+
+  // TODO: This is probably inappropriate now
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
       createWindow();
@@ -246,6 +291,7 @@ launchSNI();
 ipcMain.on('requestSharedData', (event, args) => {
   event.sender.send('sharedData', sharedData);
 });
+// TODO: Update this function to accept a game argument
 ipcMain.on('setLauncher', async (event, args) => {
   // Allow the user to specify a program to launch the ROM
   const config = JSON.parse(fs.readFileSync(configPath).toString());
@@ -266,14 +312,19 @@ try{
   const sni = new SNI();
   sni.setAddressSpace(SNI.supportedAddressSpaces.FXPAKPRO); // We support communicating with FXPak devices
   sni.setMemoryMap(SNI.supportedMemoryMaps.LOROM); // ALttP uses LOROM
-
   ipcMain.handle('launchSNI', launchSNI);
   ipcMain.handle('fetchDevices', sni.fetchDevices);
   ipcMain.handle('setDevice', (event, device) => sni.setDevice.apply(sni, [device]));
   ipcMain.handle('readFromAddress', (event, args) => sni.readFromAddress.apply(sni, args));
   ipcMain.handle('writeToAddress', (event, args) => sni.writeToAddress.apply(sni, args));
 
-  fs.writeSync(logFile, `[${new Date().toLocaleString()}] Log begins.\n`);
+  // General data exchange
+  ipcMain.handle('getGame', (event, args) => {
+    console.log(`Game: ${game}`);
+    return game;
+  });
+
+  // Logging from chromium instance
   ipcMain.handle('writeToLog', (event, data) =>
     fs.writeSync(logFile, `[${new Date().toLocaleString()}] ${data}\n`));
 }catch(error){

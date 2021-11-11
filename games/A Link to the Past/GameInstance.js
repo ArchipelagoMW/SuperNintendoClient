@@ -559,4 +559,38 @@ class GameInstance {
       locations: locationIds,
     }]));
   };
+
+  /**
+   * Handle the /locations command
+   */
+  handleLocationsCommand = () => {
+    if (this.checkedLocations.length === 0) {
+      appendConsoleMessage('No locations have been checked yet.');
+      return;
+    }
+
+    // Build a flat map of locations
+    let locationFlatMap = {};
+    Object.values(this.locationsById).forEach((locationMap) => {
+      locationFlatMap = Object.assign(locationFlatMap, locationMap);
+    });
+
+    // Print all checked locations to console
+    appendConsoleMessage('The following locations have been checked:');
+    this.checkedLocations.forEach((locationId) => {
+      appendConsoleMessage(locationFlatMap[locationId].name);
+    });
+  };
+
+  /**
+   * Returns the name of an item based on its ID
+   * @param itemId
+   */
+  getItemById = (itemId) => apItemsById['A Link to the Past'][itemId];
+
+  /**
+   * Returns the name of a location based on its ID
+   * @param locationId
+   */
+  getLocationById = (locationId) => apLocationsById['A Link to the Past'][locationId];
 }

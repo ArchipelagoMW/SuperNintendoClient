@@ -31,7 +31,20 @@ const CLIENT_STATUS = {
   CLIENT_GOAL: 30,
 };
 
-window.addEventListener('load', () => {
+window.addEventListener('load', async () => {
+  const game = await window.dataExchange.getGame();
+  if (game) {
+    const gameInstanceScript = document.createElement('script');
+    gameInstanceScript.setAttribute('type', 'application/ecmascript');
+    gameInstanceScript.setAttribute('src', `games/${game}/GameInstance.js`);
+    document.head.appendChild(gameInstanceScript);
+
+    const romDataScript = document.createElement('script');
+    romDataScript.setAttribute('type', 'application/ecmascript');
+    romDataScript.setAttribute('src', `games/${game}/romData.js`);
+    document.head.appendChild(romDataScript);
+  }
+
   // Handle server address change
   document.getElementById('server-address').addEventListener('keydown', async (event) => {
     if (event.key !== 'Enter') { return; }
@@ -65,6 +78,12 @@ const connectToServer = (address, password = null) => {
 
   // If an empty string is passed as the address, do not attempt to connect
   if (!address) { return; }
+
+  // If the client has not loaded any game logic at this point, prevent connecting to the AP server
+  if (!gameLogicLoaded) {
+    appendConsoleMessage("No game logic has been loaded. Unable to connect to AP server.");
+    return;
+  }
 
   // This is a new connection attempt, no auth error has occurred yet
   serverAuthError = false;

@@ -24,9 +24,9 @@
   "dependencies": {
     "@grpc/grpc-js": "^1.4.4",
     "bsdiff-node": "^2.4.0",
+    "ejs": "^3.1.6",
     "electron-squirrel-startup": "^1.0.0",
     "google-protobuf": "^3.19.1",
-    "handlebars": "^4.7.7",
     "js-yaml": "^4.1.0",
     "lzma-native": "^8.0.1",
     "md5": "^2.3.0",

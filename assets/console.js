@@ -33,7 +33,7 @@ window.addEventListener('load', () => {
     if (event.key !== 'Enter' || !event.target.value) { return; }
 
     // Ignore events related to the keydown listener
-    if (event.key === 'Up' || event.key === 'Down') { return; }
+    if (event.key === 'ArrowUp' || event.key === 'ArrowDown') { return; }
 
     // Detect slash commands and perform their actions
     if (event.target.value[0] === '/') {
@@ -65,32 +65,12 @@ window.addEventListener('load', () => {
           break;
 
         case '/locations':
-          if (checkedLocations.length === 0) {
-            appendConsoleMessage('No locations have been checked yet.');
-            break;
-          }
-
-          // Build a flat map of locations
-          let locationFlatMap = {};
-          Object.values(locationsById).forEach((locationMap) => {
-            locationFlatMap = Object.assign(locationFlatMap, locationMap);
-          });
-
-          // Print all checked locations to console
-          appendConsoleMessage('The following locations have been checked:');
-          checkedLocations.forEach((locationId) => {
-            appendConsoleMessage(locationFlatMap[locationId].name);
-          });
+          gameInstance.handleLocationsCommand();
           break;
 
         case '/pause':
         case '/malmo': // For the memes
           receiveItems ? disableReceivingItems() : enableReceivingItems();
-          break;
-
-        case '/shield':
-        case '/farrak': // A little something just for me
-          receiveShields ? disableReceivingShields() : enableReceivingShields();
           break;
 
         case '/sync':
@@ -175,11 +155,11 @@ const appendFormattedConsoleMessage = (messageParts) => {
           break;
         case 'item_id':
           span.style.color = '#fc5252';
-          span.innerText = itemsById[part.text];
+          span.innerText = gameInstance.getItemById(Number(part.text));
           break;
         case 'location_id':
           span.style.color = '#5ea2c1';
-          span.innerText = locationMap[Number(part.text)];
+          span.innerText = gameInstance.getLocationById(Number(part.text));
           break;
         default:
           span.innerText = part.text;
@@ -201,16 +181,4 @@ const cacheCommand = (command) => {
 
   // Store the command
   cachedCommands.push(command);
-};
-
-// Allow yourself to receive shields. Why would you do this?
-enableReceivingShields = () => {
-  appendConsoleMessage('You are now able to receive shields.');
-  receiveShields = true;
-};
-
-// Disable receiving shields, like a true gamer
-disableReceivingShields = () => {
-  appendConsoleMessage('You will no longer receive shields.');
-  receiveShields = false;
 };
