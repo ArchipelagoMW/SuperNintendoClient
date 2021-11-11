@@ -155,10 +155,12 @@ app.whenReady().then(async () => {
   }
 
   // Load the config into memory
-  const config = JSON.parse(fs.readFileSync(configPath).toString());
+  const configData = fs.readFileSync(configPath).toString();
+  const config = configData ? JSON.parse(configData) : {};
   const baseRomHash = '03a63945398191337e896e5771f77173';
 
   // TODO: Detect which patch file was used to launch the client, if any
+
 
   // TODO: Prompt for and save the base rom per-game
   // Prompt for base rom file if not present in config, missing from disk, or the hash fails
