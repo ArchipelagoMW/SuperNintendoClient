@@ -39,6 +39,10 @@ window.addEventListener('load', () => {
     if (event.target.value[0] === '/') {
       const commandParts = event.target.value.split(' ');
       switch (commandParts[0]) {
+        case '/changegame':
+          window.dataExchange.changeGame();
+          break;
+
         case '/connect':
           if (snesDevice === null) {
             appendConsoleMessage('A SNES device must be connected before a server connection can be established.');
@@ -80,6 +84,7 @@ window.addEventListener('load', () => {
         // This command is not in alphabetical order because it's convenient to have it last
         case '/help':
           appendConsoleMessage('Available commands:');
+          appendConsoleMessage('/changegame - Open the game choice window');
           appendConsoleMessage('/connect [server] [password] - Connect to an AP server with an optional password');
           appendConsoleMessage('/fontsize [size] - Change the size of the font. 16 is default');
           appendConsoleMessage('/launcher - Choose an emulator to launch ROMs with instead of the system default');

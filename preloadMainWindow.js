@@ -27,6 +27,7 @@ contextBridge.exposeInMainWorld('sni', {
 // General data exchange
 contextBridge.exposeInMainWorld('dataExchange', {
   getGame: () => ipcRenderer.invoke('getGame'),
+  changeGame: () => ipcRenderer.invoke('changeGame'),
 });
 
 // Used for logging

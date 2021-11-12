@@ -370,6 +370,7 @@ try{
     createMainWindow();
   });
   ipcMain.handle('getGame', (event, args) => game);
+  ipcMain.handle('changeGame', (event, args) => createGamePromptWindow());
 
   // Logging from chromium instance
   ipcMain.handle('writeToLog', (event, data) =>
