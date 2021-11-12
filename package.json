@@ -6,7 +6,7 @@
   "license": "MIT",
   "main": "main.js",
   "scripts": {
-    "start": "electron .",
+    "start": "electron . dev",
     "electron-rebuild": "electron-rebuild",
     "package-win": "electron-forge package --platform win32 --arch x64",
     "make-win": "electron-forge make --platform win32 --arch x64",
@@ -24,7 +24,6 @@
   "dependencies": {
     "@grpc/grpc-js": "^1.4.4",
     "bsdiff-node": "^2.4.0",
-    "ejs": "^3.1.6",
     "electron-squirrel-startup": "^1.0.0",
     "google-protobuf": "^3.19.1",
     "js-yaml": "^4.1.0",

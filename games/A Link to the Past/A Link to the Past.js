@@ -2,7 +2,7 @@
  * Handles network commands received from the AP server.
  * Each method name should be the same as the `cmd`.
  */
-class GameInstance {
+class ALinkToThePast {
   /** Instance Variables */
   // Item tracking
   checkedLocations = [];

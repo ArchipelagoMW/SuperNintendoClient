@@ -7,7 +7,6 @@ const yaml = require('js-yaml');
 const bsdiff = require('bsdiff-node');
 const childProcess = require('child_process');
 const md5 = require('md5');
-const ejs = require('ejs');
 const SNI = require('./SNI');
 const games = require("./games/games.json");
 
@@ -127,7 +126,28 @@ if (require('electron-squirrel-startup')) {
 // Used to transfer server data from the main process to the renderer process
 const sharedData = {};
 
-const createWindow = () => {
+const createGamePromptWindow = () => {
+  const win = new BrowserWindow({
+    width: 800,
+    minWidth: 400,
+    minHeight: 100,
+    autoHideMenuBar: true,
+    webPreferences: {
+      devTools: process.argv.includes('dev'),
+      nodeIntegration: false,
+      contextIsolation: true,
+      enableRemoteModule: false,
+      preload: path.join(__dirname, 'preloadGameSelect.js'),
+    },
+  });
+
+  win.loadFile('gameSelect.html').catch((error) => {
+    console.log(error);
+    fs.writeSync(logFile, `[${new Date.toLocaleString()}] ${JSON.stringify(error)}`);
+  });
+};
+
+const createMainWindow = () => {
   const win = new BrowserWindow({
     width: 1280,
     minWidth: 400,
@@ -138,7 +158,7 @@ const createWindow = () => {
       nodeIntegration: false,
       contextIsolation: true,
       enableRemoteModule: false,
-      preload: path.join(__dirname, 'preload.js'),
+      preload: path.join(__dirname, 'preloadMainWindow.js'),
     },
   });
 
@@ -149,7 +169,7 @@ const createWindow = () => {
 };
 
 // Used in general data exchange during IPC operations
-let game = 'A Link to the Past';
+let game = null;
 
 app.whenReady().then(async () => {
   // Create the local config file if it does not exist
@@ -236,6 +256,7 @@ app.whenReady().then(async () => {
 
     // If the user provided a base ROM and a patch file, patch the base ROM
     if (config[game].baseRomPath && patchFilePath && fs.existsSync(patchFilePath)) {
+      console.log('Hi');
       const diffFilePath = path.join(__dirname, 'patch.bsdiff');
       const patchFileExt = patchFilePath.split('.').pop();
       const outputFilePath = path.join(path.dirname(patchFilePath),
@@ -252,33 +273,26 @@ app.whenReady().then(async () => {
         childProcess.spawn(config[game].launcherPath, [outputFilePath], { detached: true });
       } else if (process.platform === 'win32') {
         // If no custom launcher is specified, launch the rom with explorer on Windows
-        childProcess.spawn('explorer', [romFilePath], { detached: true });
+        childProcess.spawn('explorer', [outputFilePath], { detached: true });
       }
     }
   }
 
   // If no patch file is given, display a prompt for the user to choose their game
-  if (!game) {
-    // TODO: Display a prompt for the user to choose their game logic
-    createWindow();
-  } else {
-    // Spawn the chromium window
-    // TODO: Modify this function to accept a game parameter
-    createWindow();
-  }
+  if (!game) { createGamePromptWindow(); }
+  // Otherwise, display the main window
+  else { createMainWindow(); }
 
-  // TODO: This is probably inappropriate now
   app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-      createWindow();
-    }
+    console.log('activate');
   });
 
+  // Special logic to determine what to do when all windows have closed
   app.on('window-all-closed', () => {
-    if (process.platform !== 'darwin') {
-      app.quit();
-    }
+    console.log('window-all-closed')
+    app.quit();
   });
+
 }).catch((error) => {
   // Write error to log
   fs.writeSync(logFile, `[${new Date().toLocaleString()}] ${JSON.stringify(error)}\n`);
