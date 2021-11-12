@@ -190,6 +190,9 @@ const createMainWindow = () => {
   mainWindow.loadFile('index.html').then(() => {
     // Allow the process to terminate if the user closes all windows
     preserveProcess = false;
+
+    // Set window icon
+    mainWindow.setIcon(`games/${game}/icon.ico`);
   }).catch((error) => {
     preserveProcess = false;
     console.log(error);
