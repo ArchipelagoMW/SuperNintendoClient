@@ -9,6 +9,7 @@ const childProcess = require('child_process');
 const md5 = require('md5');
 const SNI = require('./SNI');
 const games = require("./games/games.json");
+const Registry = require("winreg");
 
 // Main process and window management
 let gamePromptWindow = null;
@@ -83,45 +84,61 @@ const launchSNI = () => {
 // Perform certain actions during the install process
 if (require('electron-squirrel-startup')) {
   if (process.platform === 'win32') {
-
-    // Prepare to add registry entries for .apbp files
+    // Determine executable path
     const Registry = require('winreg');
     const exePath = path.join(process.env.LOCALAPPDATA, 'SuperNintendoClient', 'SuperNintendoClient.exe');
 
-    const games = require('games/games.json');
-    Object.keys(games).forEach((game) => {
-      // TODO: Write registry entries for each game's extensions and icons
-    });
-
-    // Set file type description for .apbp files
+    // Set file type description
     const descriptionKey = new Registry({
       hive: Registry.HKCU,
       key: '\\Software\\Classes\\archipelago.super-nintendo-client.v1',
     });
     descriptionKey.set(Registry.DEFAULT_VALUE, Registry.REG_SZ, 'Archipelago Binary Patch',
-      (error) => console.error(error));
+      (error) => fs.writeSync(logFile, `[${new Date().toLocaleString()}] ${error}\n`));
 
-    // Set icon for patch files
     const iconKey = new Registry({
       hive: Registry.HKCU,
       key: '\\Software\\Classes\\archipelago.super-nintendo-client.v1\\DefaultIcon',
     });
     iconKey.set(Registry.DEFAULT_VALUE, Registry.REG_SZ, `${exePath},0`, (error) => console.error(error));
 
-    // Set set default program for launching .patch files (SuperNintendoClient)
+    // Set the shell command arguments used when launching this program by executing a file
     const commandKey = new Registry({
       hive: Registry.HKCU,
       key: '\\Software\\Classes\\archipelago.super-nintendo-client.v1\\shell\\open\\command'
     });
-    commandKey.set(Registry.DEFAULT_VALUE, Registry.REG_SZ, `"${exePath}" "%1"`, (error) => console.error(error));
+    commandKey.set(Registry.DEFAULT_VALUE, Registry.REG_SZ, `"${exePath}" "%1"`,
+      (error) => fs.writeSync(logFile, `[${new Date().toLocaleString()}] ${error}\n`));
 
-    // Set patch files to launch with SuperNintendoClient
-    const extensionKey = new Registry({
-      hive: Registry.HKCU,
-      key: '\\Software\\Classes\\.apbp',
+    // Set icon and default program for each game
+    const games = require('games/games.json');
+    Object.keys(games).forEach((game) => {
+      games[game].extensions.forEach((ext) => {
+        // Set patch file to launch with SuperNintendoClient
+        const extensionKey = new Registry({
+          hive: Registry.HKCU,
+          key: `\\Software\\Classes\\${ext}`,
+        });
+        extensionKey.set(Registry.DEFAULT_VALUE, Registry.REG_SZ, 'archipelago.super-nintendo-client.v1',
+          (error) => fs.writeSync(logFile, `[${new Date().toLocaleString()}] ${error}\n`));
+
+        // Create file extension in HKEY_CLASSES_ROOT
+        const hkcrExtensionKey = new Registry({
+          hive: Registry.HKCR,
+          key: `\\${ext}`,
+        });
+        hkcrExtensionKey.set(Registry.DEFAULT_VALUE, Registry.REG_SZ, `Archipelago Patch File for ${game}`,
+          (error) => fs.writeSync(logFile, `[${new Date().toLocaleString()}] ${error}\n`));
+
+        const hkcrIconKey = new Registry({
+          hive: Registry.HKCR,
+          key: `\\${ext}\\DefaultIcon`,
+        });
+        hkcrIconKey.set(Registry.DEFAULT_VALUE, Registry.REG_SZ, path.join(__dirname, 'games', game, 'icon.ico'),
+          (error) => fs.writeSync(logFile, `[${new Date().toLocaleString()}] ${error}\n`));
+      });
     });
-    extensionKey.set(Registry.DEFAULT_VALUE, Registry.REG_SZ, 'archipelago.super-nintendo-client.v1',
-      (error) => console.error(error));
+
   }
 
   // Do not launch the client during the install process
