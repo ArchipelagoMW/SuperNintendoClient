@@ -191,8 +191,9 @@ const createMainWindow = () => {
     // Allow the process to terminate if the user closes all windows
     preserveProcess = false;
 
-    // Set window icon
+    // Set window icon and title
     mainWindow.setIcon(`games/${game}/icon.ico`);
+    mainWindow.setTitle(`Super Nintendo Client (${game})`);
   }).catch((error) => {
     preserveProcess = false;
     console.log(error);
@@ -347,9 +348,8 @@ ipcMain.on('setLauncher', async (event, args) => {
     message: 'Choose an executable to be used when launching the ROM',
   });
   if (!launcherPath.canceled && launcherPath.filePaths.length > 0) {
-    fs.writeFileSync(configPath, JSON.stringify(Object.assign({}, config, {
-      launcherPath: launcherPath.filePaths[0],
-    })));
+    config[game].launcherPath = launcherPath.filePaths[0];
+    fs.writeFileSync(configPath, JSON.stringify(config));
   }
 });
 
