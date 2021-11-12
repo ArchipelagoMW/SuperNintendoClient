@@ -128,10 +128,10 @@ const sharedData = {};
 
 const createGamePromptWindow = () => {
   const win = new BrowserWindow({
-    width: 800,
-    minWidth: 400,
-    minHeight: 100,
+    width: 500,
+    height: 225,
     autoHideMenuBar: true,
+    resizable: false,
     webPreferences: {
       devTools: process.argv.includes('dev'),
       nodeIntegration: false,
