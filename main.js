@@ -283,16 +283,16 @@ app.whenReady().then(async () => {
 
         // User selected a valid base ROM path
         config[game].baseRomPath = newBaseRomPath.filePaths[0];
+        fs.writeFileSync(configPath, JSON.stringify(config));
       }
     }
 
     // If the user provided a base ROM and a patch file, patch the base ROM
     if (config[game].baseRomPath && patchFilePath && fs.existsSync(patchFilePath)) {
-      console.log('Hi');
       const diffFilePath = path.join(__dirname, 'patch.bsdiff');
       const patchFileExt = patchFilePath.split('.').pop();
       const outputFilePath = path.join(path.dirname(patchFilePath),
-        `${path.basename(patchFilePath).substr(0, path.basename(patchFilePath).length - patchFileExt.length)}`)
+        `${path.basename(patchFilePath).substr(0, path.basename(patchFilePath).length - patchFileExt.length)}.sfc`);
       const apbpBuffer = await lzma.decompress(fs.readFileSync(patchFilePath));
       const apbp = yaml.load(apbpBuffer);
       sharedData.apServerAddress = apbp.meta.server ? apbp.meta.server : null;
