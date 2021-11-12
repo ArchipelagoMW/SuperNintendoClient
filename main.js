@@ -10,6 +10,11 @@ const md5 = require('md5');
 const SNI = require('./SNI');
 const games = require("./games/games.json");
 
+// Main process and window management
+let gamePromptWindow = null;
+let mainWindow = null;
+let preserveProcess = false;
+
 // Control variable for SNI to prevent multiple rapid launches
 let lastSNILaunchAttempt = 0;
 
@@ -127,7 +132,14 @@ if (require('electron-squirrel-startup')) {
 const sharedData = {};
 
 const createGamePromptWindow = () => {
-  const win = new BrowserWindow({
+  // Prevent the process from closing if this would close the process's last window
+  preserveProcess = true;
+
+  // Close all open windows
+  if (gamePromptWindow) { gamePromptWindow.close(); gamePromptWindow = null; }
+  if (mainWindow) { mainWindow.close(); mainWindow = null; }
+
+  gamePromptWindow = new BrowserWindow({
     width: 500,
     height: 225,
     autoHideMenuBar: true,
@@ -141,14 +153,26 @@ const createGamePromptWindow = () => {
     },
   });
 
-  win.loadFile('gameSelect.html').catch((error) => {
+  gamePromptWindow.loadFile('gameSelect.html').then(() => {
+    // Allow the process to terminate if the user closes all windows
+    preserveProcess = false;
+  }).catch((error) => {
+    preserveProcess = false;
     console.log(error);
     fs.writeSync(logFile, `[${new Date.toLocaleString()}] ${JSON.stringify(error)}`);
   });
 };
 
 const createMainWindow = () => {
-  const win = new BrowserWindow({
+  // Prevent the process from closing if this would close the process's last window
+  preserveProcess = true;
+
+  // Close all open windows
+  if (gamePromptWindow) { gamePromptWindow.close(); gamePromptWindow = null; }
+  if (mainWindow) { mainWindow.close(); mainWindow = null; }
+
+  // Configure the new main window
+  mainWindow = new BrowserWindow({
     width: 1280,
     minWidth: 400,
     height: 720,
@@ -162,7 +186,12 @@ const createMainWindow = () => {
     },
   });
 
-  win.loadFile('index.html').catch((error) => {
+  // Display the main window
+  mainWindow.loadFile('index.html').then(() => {
+    // Allow the process to terminate if the user closes all windows
+    preserveProcess = false;
+  }).catch((error) => {
+    preserveProcess = false;
     console.log(error);
     fs.writeSync(logFile, `[${new Date.toLocaleString()}] ${JSON.stringify(error)}`);
   });
@@ -289,8 +318,8 @@ app.whenReady().then(async () => {
 
   // Special logic to determine what to do when all windows have closed
   app.on('window-all-closed', () => {
-    console.log('window-all-closed')
-    app.quit();
+    // Close the process if we aren't holding it open for another pending window to be opened
+    if (!preserveProcess) { app.quit(); }
   });
 
 }).catch((error) => {
@@ -333,10 +362,11 @@ try{
   ipcMain.handle('writeToAddress', (event, args) => sni.writeToAddress.apply(sni, args));
 
   // General data exchange
-  ipcMain.handle('getGame', (event, args) => {
-    console.log(`Game: ${game}`);
-    return game;
+  ipcMain.handle('setGame', (event, args) => {
+    game = args[0];
+    createMainWindow();
   });
+  ipcMain.handle('getGame', (event, args) => game);
 
   // Logging from chromium instance
   ipcMain.handle('writeToLog', (event, data) =>

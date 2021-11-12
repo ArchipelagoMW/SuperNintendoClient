@@ -20,5 +20,9 @@ window.addEventListener('load', async () => {
     gameDiv.appendChild(gameImg);
     gameDiv.appendChild(gameName);
     gameList.appendChild(gameDiv);
+
+    gameDiv.addEventListener('click', () => {
+      window.dataExchange.setGame(game);
+    });
   });
 });
