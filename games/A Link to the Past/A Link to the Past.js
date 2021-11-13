@@ -2,7 +2,7 @@
  * Handles network commands received from the AP server.
  * Each method name should be the same as the `cmd`.
  */
-class ALinkToThePast {
+class GameInstance {
   /** Instance Variables */
   // Item tracking
   checkedLocations = [];
@@ -594,3 +594,6 @@ class ALinkToThePast {
    */
   getLocationById = (locationId) => apLocationsById['A Link to the Past'][locationId];
 }
+
+// Notify the client the game logic has been loaded
+gameLogicLoaded = true;

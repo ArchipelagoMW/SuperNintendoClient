@@ -36,7 +36,7 @@ window.addEventListener('load', async () => {
   if (game) {
     const gameInstanceScript = document.createElement('script');
     gameInstanceScript.setAttribute('type', 'application/ecmascript');
-    gameInstanceScript.setAttribute('src', `games/${game}/RomData.js`);
+    gameInstanceScript.setAttribute('src', `games/${game}/romData.js`);
     document.head.appendChild(gameInstanceScript);
 
     const romDataScript = document.createElement('script');
@@ -105,7 +105,7 @@ const connectToServer = (address, password = null) => {
     // If a new server connection is established, that server will inform the client which items have been sent to
     // the ROM so far, if any. Clear the client's current list of received items to prevent the old list from
     // contaminating the new one, sometimes called "seed bleed".
-    gameInstance = new ALinkToThePast();
+    gameInstance = new GameInstance();
   };
 
   // Handle incoming messages

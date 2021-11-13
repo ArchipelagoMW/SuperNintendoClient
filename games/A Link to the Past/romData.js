@@ -1,4 +1,4 @@
-const RomData = {
+const romData = {
   ROM_START: 0x000000,
   WRAM_START: 0xF50000,
   WRAM_SIZE: 0x20000,

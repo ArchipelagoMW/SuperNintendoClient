@@ -16,14 +16,13 @@ class GameInstance {
   authenticate = async () => {
     // Build tags used in authentication below
     const tags = ['Super Nintendo Client'];
-    if (this.deathLinkEnabled) { tags.push('DeathLink'); }
 
     // Authenticate with the server
     const romName = await readFromAddress(ROMNAME_START, ROMNAME_SIZE);
     const connectionData = {
       cmd: 'Connect',
-      game: 'Super Metroid',
-      name: btoa(new TextDecoder().decode(romName)), // Base64 encoded rom name
+      game: 'Game Name', // CHANGE ME
+      name: 'Probably the ROM name', // CHANGE ME
       uuid: getClientId(),
       tags: tags,
       password: serverPassword,

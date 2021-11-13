@@ -34,6 +34,10 @@ to drag the patch file onto the executable in order to patch your game.
 6. Enter the address of the Archipelago server into the *Server* box on the client, and press Enter.
 7. Play the game.
 
+## Developers
+Want to add a game to the client? See
+<a href="https://github.com/ArchilepagoMW/SuperNintendoClient/tree/master/games">Adding a Game to SNC</a>.
+
 ## Run it from source:
 I am writing this using the latest version of Node.js, but you might be able to get away with using the current LTS version.
 ```bash
