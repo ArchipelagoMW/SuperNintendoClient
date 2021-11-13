@@ -84,45 +84,20 @@ const launchSNI = () => {
 if (require('electron-squirrel-startup')) {
   if (process.platform === 'win32') {
     // Determine executable path
-    const Registry = require('winreg');
     const exePath = path.join(process.env.LOCALAPPDATA, 'SuperNintendoClient', 'SuperNintendoClient.exe');
 
-    // Define the software class
-    const descriptionKey = new Registry({
-      hive: Registry.HKCU,
-      key: '\\Software\\Classes\\archipelago.super-nintendo-client.v1',
-    });
-    descriptionKey.set(Registry.DEFAULT_VALUE, Registry.REG_SZ, 'Archipelago Binary Patch',
-      (error) => fs.writeSync(logFile, `[${new Date().toLocaleString()}] ${error}\n`));
-
-    // Set the shell command arguments used when launching this program by executing a file
-    const commandKey = new Registry({
-      hive: Registry.HKCU,
-      key: '\\Software\\Classes\\archipelago.super-nintendo-client.v1\\shell\\open\\command'
-    });
-    commandKey.set(Registry.DEFAULT_VALUE, Registry.REG_SZ, `"${exePath}" "%1"`,
-      (error) => fs.writeSync(logFile, `[${new Date().toLocaleString()}] ${error}\n`));
+    // Create the registry keys
+    childProcess.execSync(`reg add HKCU\\SOFTWARE\\Classes\\archipelago.super-nintendo-client.v1 /ve /d "Archipelago Binary Patch" /f`);
+    childProcess.execSync(`reg add HKCU\\SOFTWARE\\Classes\\archipelago.super-nintendo-client.v1\\shell\\open\\command /ve /d \""${exePath}" "%1"\" /f`);
 
     // Set icon and default program for each game
     Object.keys(games).forEach((game) => {
       games[game].extensions.forEach((ext) => {
-        // Set patch file to launch with SuperNintendoClient
-        const extensionKey = new Registry({
-          hive: Registry.HKCU,
-          key: `\\Software\\Classes\\${ext}`,
-        });
-        extensionKey.set(Registry.DEFAULT_VALUE, Registry.REG_SZ, 'archipelago.super-nintendo-client.v1',
-          (error) => fs.writeSync(logFile, `[${new Date().toLocaleString()}] ${error}\n`));
-
-        const hkcrIconKey = new Registry({
-          hive: Registry.HKCU,
-          key: `\\Software\\Classes\\${ext}\\DefaultIcon`,
-        });
-        hkcrIconKey.set(Registry.DEFAULT_VALUE, Registry.REG_SZ, path.join(__dirname, 'games', game, 'icon.ico'),
-          (error) => fs.writeSync(logFile, `[${new Date().toLocaleString()}] ${error}\n`));
+        childProcess.execSync(`reg add HKCU\\SOFTWARE\\Classes\\${ext} /ve /d archipelago.super-nintendo-client.v1 /f`);
+        // childProcess.execSync(`reg add HKCR\\${ext} /ve /d archipelago.super-nintendo-client.v1 /f`);
+        // childProcess.execSync(`reg add HKCR\\${ext}\\DefaultIcon /ve /d "${path.join(__dirname, 'games', game, 'icon.ico')},1" /f`)
       });
     });
-
   }
 
   // Do not launch the client during the install process
