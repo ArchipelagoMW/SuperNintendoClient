@@ -1,5 +1,6 @@
 const path = require('path');
 const childProcess = require('child_process');
+const fs = require('fs');
 const games = require('./games/games.json');
 
 if (process.platform === 'win32') {
@@ -14,8 +15,15 @@ if (process.platform === 'win32') {
   Object.keys(games).forEach((game) => {
     games[game].extensions.forEach((ext) => {
       childProcess.execSync(`reg add HKCU\\SOFTWARE\\Classes\\${ext} /ve /d archipelago.super-nintendo-client.v1 /f`);
-      // childProcess.execSync(`reg add HKCR\\${ext} /ve /d archipelago.super-nintendo-client.v1 /f`);
-      // childProcess.execSync(`reg add HKCR\\${ext}\\DefaultIcon /ve /d "${path.join(__dirname, 'games', game, 'icon.ico')},1" /f`)
+      // childProcess.execSync(`reg add HKCU\\SOFTWARE\\Classes\\${ext}\\DefaultIcon /ve /d "${path.join(__dirname, 'games', game, 'icon.ico')}" /f`);
+      childProcess.execSync(`reg add HKCR\\${ext} /ve /d archipelago.super-nintendo-client.v1 /f`);
+      childProcess.execSync(`reg add HKCR\\${ext}\\DefaultIcon /ve /d "${path.join(__dirname, 'games', game, 'icon.ico')}" /f`)
     });
   });
+
+  // Kill explorer, delete icon cache, restart explorer
+  childProcess.execSync('taskkill /im explorer.exe /F');
+  const iconCache = path.join(process.env.LOCALAPPDATA, 'IconCache.db');
+  if (fs.existsSync(iconCache)) { fs.rmSync(iconCache); }
+  childProcess.spawn('explorer', { detached: true });
 }
