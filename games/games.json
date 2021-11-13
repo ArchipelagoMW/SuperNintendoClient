@@ -1,10 +1,12 @@
 {
   "A Link to the Past": {
     "extensions": [".apbp", ".apz3"],
-    "md5Hash": "03a63945398191337e896e5771f77173"
+    "md5Hash": "03a63945398191337e896e5771f77173",
+    "shortName": "zelda3"
   },
   "Super Metroid": {
     "extensions": [".apm3"],
-    "md5Hash": ""
+    "md5Hash": "",
+    "shortName": "metroid3"
   }
 }

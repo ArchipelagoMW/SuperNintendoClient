@@ -86,16 +86,24 @@ if (require('electron-squirrel-startup')) {
     // Determine executable path
     const exePath = path.join(process.env.LOCALAPPDATA, 'SuperNintendoClient', 'SuperNintendoClient.exe');
 
-    // Create the registry keys
-    childProcess.execSync(`reg add HKCU\\SOFTWARE\\Classes\\archipelago.super-nintendo-client.v1 /ve /d "Archipelago Binary Patch" /f`);
-    childProcess.execSync(`reg add HKCU\\SOFTWARE\\Classes\\archipelago.super-nintendo-client.v1\\shell\\open\\command /ve /d \""${exePath}" "%1"\" /f`);
+    // Create the registry keys for the main program
+    childProcess.execSync(`reg add HKCU\\SOFTWARE\\Classes\\archipelago.snc.base /ve /d "Archipelago Super Nintendo Client" /f`);
+    childProcess.execSync(`reg add HKCU\\SOFTWARE\\Classes\\archipelago.snc.base\\shell\\open\\command /ve /d \""${exePath}" "%1"\" /f`);
+    childProcess.execSync(`reg add HKCU\\SOFTWARE\\Classes\\archipelago.snc.base\\DefaultIcon /ve /d "${exePath}" /f`);
 
-    // Set icon and default program for each game
+    // Create registry entries for each game
+    let i=0;
     Object.keys(games).forEach((game) => {
+      // Create virtual applications for each game
+      const iconPath = path.join(__dirname, 'games', game, 'icon.ico');
+      childProcess.execSync(`reg add HKCU\\SOFTWARE\\Classes\\archipelago.snc.${games[game].shortName} /ve /d "Archipelago ${game} Patch File" /f`);
+      childProcess.execSync(`reg add HKCU\\SOFTWARE\\Classes\\archipelago.snc.${games[game].shortName}\\shell\\open\\command /ve /d \""${exePath}" "%1"\" /f`);
+      childProcess.execSync(`reg add HKCU\\SOFTWARE\\Classes\\archipelago.snc.${games[game].shortName}\\DefaultIcon /ve /d "${iconPath}" /f`);
+
       games[game].extensions.forEach((ext) => {
-        childProcess.execSync(`reg add HKCU\\SOFTWARE\\Classes\\${ext} /ve /d archipelago.super-nintendo-client.v1 /f`);
-        // childProcess.execSync(`reg add HKCR\\${ext} /ve /d archipelago.super-nintendo-client.v1 /f`);
-        // childProcess.execSync(`reg add HKCR\\${ext}\\DefaultIcon /ve /d "${path.join(__dirname, 'games', game, 'icon.ico')},1" /f`)
+        // Assign each file extension to its corresponding virtual application
+        childProcess.execSync(`reg add HKCU\\SOFTWARE\\Classes\\${ext} /ve /d archipelago.snc.${games[game].shortName} /f`);
+        i++;
       });
     });
   }
