@@ -4,6 +4,7 @@
  */
 class GameInstance {
   /** Instance Variables */
+  deathLinkEnabled = false;
 
   constructor() {
     // Maybe do something here
@@ -16,10 +17,10 @@ class GameInstance {
   authenticate = async () => {
     // Build tags used in authentication below
     const tags = ['Super Nintendo Client'];
-    if (this.deathLinkEnabled) { tags.push('DeathLink'); }
+    if (await this.isDeathLinkEnabled()) { tags.push('DeathLink'); }
 
     // Authenticate with the server
-    const romName = await readFromAddress(ROMNAME_START, ROMNAME_SIZE);
+    const romName = await readFromAddress(romData.ROMNAME_START, romData.ROMNAME_SIZE);
     const connectionData = {
       cmd: 'Connect',
       game: 'Super Metroid',
@@ -136,6 +137,16 @@ class GameInstance {
    * @param locationId
    */
   getLocationById = (locationId) => apLocationsById['Super Metroid'][locationId];
+
+  /**
+   * Determine if this ROM has DeathLink enabled
+   * @returns {Promise<boolean>}
+   */
+  isDeathLinkEnabled = async () => {
+    // Determine if DeathLink is enabled
+    const deathLinkFlag = await readFromAddress(romData.DEATH_LINK_ACTIVE_ADDR, 1);
+    return (deathLinkFlag[0] === 1);
+  };
 }
 
 // Notify the client the game logic has been loaded
