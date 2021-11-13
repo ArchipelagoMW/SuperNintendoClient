@@ -36,7 +36,7 @@ to drag the patch file onto the executable in order to patch your game.
 
 ## Developers
 Want to add a game to the client? See
-<a href="https://github.com/ArchilepagoMW/SuperNintendoClient/tree/master/games">Adding a Game to SNC</a>.
+<a href="https://github.com/ArchipelagoMW/SuperNintendoClient/tree/master/games">Adding a Game to SNC</a>.
 
 ## Run it from source:
 I am writing this using the latest version of Node.js, but you might be able to get away with using the current LTS version.
