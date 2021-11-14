@@ -4,7 +4,8 @@
  */
 class GameInstance {
   /** Instance Variables */
-  deathLinkEnabled = false;
+  // Has DeathLink been enabled?
+  deathLinkEnabled = null;
 
   constructor() {
     // Maybe do something here
@@ -143,9 +144,33 @@ class GameInstance {
    * @returns {Promise<boolean>}
    */
   isDeathLinkEnabled = async () => {
+    // If the state of DeathLink is already known, do no re-query the ROM
+    if (this.deathLinkEnabled !== null) { return this.deathLinkEnabled; }
+
     // Determine if DeathLink is enabled
     const deathLinkFlag = await readFromAddress(romData.DEATH_LINK_ACTIVE_ADDR, 1);
-    return (deathLinkFlag[0] === 1);
+    this.deathLinkEnabled = parseInt(deathLinkFlag[0], 10) === 1;
+    return this.deathLinkEnabled;
+  };
+
+  /**
+   * Kill the player
+   * @returns {Promise<void>}
+   */
+  killPlayer = async () => {
+    const killSamusData = new Uint8Array(2);
+    killSamusData.set([0, 0]);
+    await writeToAddress(romData.WRAM_START + 0x09C2, killSamusData);
+  };
+
+  /**
+   * Determine if the player is currently dead
+   * @returns {Promise<boolean>}
+   */
+  isPlayerDead = async () => {
+    // Fetch the current game mode and determine if Samus is currently dead
+    const gameMode = await readFromAddress(romData.WRAM_START + 0x0998, 1);
+    return romData.DEATH_MODES.includes(gameMode[0]);
   };
 }
 

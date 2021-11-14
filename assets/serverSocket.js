@@ -303,6 +303,11 @@ const connectToServer = (address, password = null) => {
           // This command can be used for a variety of things. Currently, it is used for keep-alive and DeathLink.
           // keep-alive packets can be safely ignored
 
+          // DeathLink handling
+          if (command.tags.includes('DeathLink') && await gameInstance.isDeathLinkEnabled()) {
+            // TODO: Implement DeathLink handling
+          }
+
           await gameInstance.Bounced(command);
           break;
 

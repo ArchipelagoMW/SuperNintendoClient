@@ -16,15 +16,12 @@ class GameInstance {
 
   // Has DeathLink been enabled?
   deathLinkEnabled = null;
-  lastForcedDeath = new Date().getTime(); // Tracks the last time a death was send or received over the network
-  playerIsDead = false;
-  playerIsStillDead = false;
 
   // Game state tracking
   gameCompleted = false; // If the client has previously notified the server the game was completed
 
   constructor() {
-    // Maybe do something here
+    this.deathLinkEnabled = this.isDeathLinkEnabled();
   }
 
   /**
@@ -37,7 +34,7 @@ class GameInstance {
     if (this.deathLinkEnabled) { tags.push('DeathLink'); }
 
     // Authenticate with the server
-    const romName = await readFromAddress(ROMNAME_START, ROMNAME_SIZE);
+    const romName = await readFromAddress(romData.ROMNAME_START, romData.ROMNAME_SIZE);
     const connectionData = {
       cmd: 'Connect',
       game: 'A Link to the Past',
@@ -154,10 +151,6 @@ class GameInstance {
     // In case the user replaced the ROM without disconnecting from the AP Server or SNI, treat every new
     // 'Connected' message as if it means a new ROM was discovered
     this.itemsReceived = [];
-
-    // Determine if DeathLink is enabled
-    const deathLinkFlag = await readFromAddress(DEATH_LINK_ACTIVE_ADDR, 1);
-    this.deathLinkEnabled = parseInt(deathLinkFlag[0], 10) === 1;
   };
 
   /**
@@ -246,29 +239,7 @@ class GameInstance {
    * @returns {Promise<void>}
    * @constructor
    */
-  Bounced = async (command) => {
-    if (command.tags.includes('DeathLink')) {
-      // Has it been at least ten seconds since the last time Link was forcibly killed?
-      if (this.deathLinkEnabled && (new Date().getTime() > (this.lastForcedDeath + 10000))) {
-        // Notify the player of the DeathLink occurrence, and who is to blame
-        appendConsoleMessage(`${command.data.source} has died, and took you with them.`)
-
-        // Kill Link
-        this.playerIsDead = this.playerIsStillDead = true;
-        this.lastForcedDeath = new Date().getTime();
-
-        // Set the current health value to zero
-        let healthValue = new Uint8Array(1);
-        healthValue.set([0]);
-        await writeToAddress(WRAM_START + 0xF36D, healthValue);
-
-        // Deal eight damage to Link
-        let damageAmount = new Uint8Array(1);
-        damageAmount.set([8]);
-        await writeToAddress(WRAM_START + 0x0373, damageAmount);
-      }
-    }
-  };
+  Bounced = async (command) => {};
 
   /**
    * Run a single iteration of the client logic. Scan for location checks, send received items, etc.
@@ -277,54 +248,21 @@ class GameInstance {
   runClientLogic = () => new Promise(async (resolve, reject) => {
     try{
       // Fetch game mode
-      const gameMode = await readFromAddress(WRAM_START + 0x10, 0x01);
+      const gameMode = await readFromAddress(romData.WRAM_START + 0x10, 0x01);
       const modeValue = gameMode[0];
       // If game mode is unknown or not present, do not attempt to fetch or write data to the SNES
       if (!modeValue || (
-        !INGAME_MODES.includes(modeValue) &&
-        !ENDGAME_MODES.includes(modeValue) &&
-        !DEATH_MODES.includes(modeValue)
+        !romData.INGAME_MODES.includes(modeValue) &&
+        !romData.ENDGAME_MODES.includes(modeValue) &&
+        !romData.DEATH_MODES.includes(modeValue)
       )) {
         return resolve();
       }
 
-      // Check if DeathLink is enabled and Link is dead
-      if (this.deathLinkEnabled && this.playerIsDead) {
-        // Determine if link is currently dead, and therefore if he is able to be killed
-        if (!this.playerIsStillDead) { // Link is dead, and it just happened
-          // Keep track of Link's state to prevent sending multiple DeathLink signals per death
-          this.playerIsStillDead = true;
-
-          // Check if it has been at least ten seconds since the last DeathLink network signal
-          // was sent or received
-          if (new Date().getTime() > (this.lastForcedDeath + 10000)) {
-            if (serverSocket && serverSocket.readyState === WebSocket.OPEN) {
-              // Link just died, so ignore DeathLink signals for the next ten seconds
-              this.lastForcedDeath = new Date().getTime();
-              serverSocket.send(JSON.stringify([{
-                cmd: 'Bounce',
-                tags: ['DeathLink'],
-                data: {
-                  time: Math.floor(this.lastForcedDeath / 1000), // Unix Timestamp
-                  source: players.find((player) =>
-                    (player.team === playerTeam) && (player.slot === playerSlot)).alias, // Local player alias
-                },
-              }]));
-            }
-
-            return resolve();
-          }
-        }
-      }
-
-      // Determine if Link is currently dead
-      this.playerIsDead = DEATH_MODES.includes(modeValue);
-      if (!this.playerIsDead) { this.playerIsStillDead = false; }
-
       // Fetch game state and triforce information
-      const gameOverScreenDisplayed = await readFromAddress(SAVEDATA_START + 0x443, 0x01);
+      const gameOverScreenDisplayed = await readFromAddress(romData.SAVEDATA_START + 0x443, 0x01);
       // If the game over screen is displayed, do not send or receive items
-      if (gameOverScreenDisplayed[0] || ENDGAME_MODES.indexOf(modeValue) > -1) {
+      if (gameOverScreenDisplayed[0] || romData.ENDGAME_MODES.indexOf(modeValue) > -1) {
         // If this is the first time the game over screen is displayed, inform the server
         // the game is complete.
         if (serverSocket && serverSocket.readyState === WebSocket.OPEN && !this.gameCompleted) {
@@ -455,7 +393,7 @@ class GameInstance {
       // The data originally fetched may not cover all of the underworld items, so the client needs to
       // fetch the remaining items to see if they have been previously obtained
       if (underworldBegin < underworldEnd) {
-        const uwResults = await readFromAddress(SAVEDATA_START + (underworldBegin * 2),
+        const uwResults = await readFromAddress(romData.SAVEDATA_START + (underworldBegin * 2),
           (underworldEnd - underworldBegin) * 2);
         const newChecks = [];
         for (const location of underworldMissing) {
@@ -483,7 +421,8 @@ class GameInstance {
       // The data originally fetched may not cover all of the overworld items, so the client needs to
       // fetch the remaining items to see if they have been previously obtained
       if (overworldBegin < overworldEnd) {
-        const owResults = await readFromAddress(SAVEDATA_START + 0x280 + overworldBegin, overworldEnd - overworldBegin);
+        const owResults = await readFromAddress(
+          romData.SAVEDATA_START + 0x280 + overworldBegin, overworldEnd - overworldBegin);
         const newChecks = [];
         for (const location of overworldMissing) {
           if ((owResults[location.screenId - overworldBegin] & 0x40) !== 0) {
@@ -503,7 +442,7 @@ class GameInstance {
         }
       }
       if (!npcAllChecked) {
-        const npcResults = await readFromAddress(SAVEDATA_START + 0x410, 2);
+        const npcResults = await readFromAddress(romData.SAVEDATA_START + 0x410, 2);
         const npcValue = npcResults[0] | (npcResults[1] << 8);
         const newChecks = [];
         for (const location of Object.values(this.locationsById['npc'])) {
@@ -525,7 +464,7 @@ class GameInstance {
         }
       }
       if (!miscAllChecked) {
-        const miscResults = await readFromAddress(SAVEDATA_START + 0x3c6, 4);
+        const miscResults = await readFromAddress(romData.SAVEDATA_START + 0x3c6, 4);
         const newChecks = [];
         for (const location of Object.values(this.locationsById['misc'])) {
           // What the hell is this assert for? It's always true based on data from romData.js
@@ -593,6 +532,47 @@ class GameInstance {
    * @param locationId
    */
   getLocationById = (locationId) => apLocationsById['A Link to the Past'][locationId];
+
+  /**
+   * Determine if DeathLink is enabled
+   * @returns {Promise<boolean>}
+   */
+  isDeathLinkEnabled = async () => {
+    // If the state of DeathLink is already known, do no re-query the ROM
+    if (this.deathLinkEnabled !== null) { return this.deathLinkEnabled; }
+
+    // Determine if DeathLink is enabled
+    const deathLinkFlag = await readFromAddress(romData.DEATH_LINK_ACTIVE_ADDR, 1);
+    this.deathLinkEnabled = parseInt(deathLinkFlag[0], 10) === 1;
+    return this.deathLinkEnabled;
+  };
+
+  /**
+   * Cause the player to die
+   * @returns {Promise<void>}
+   */
+  killPlayer = async () => {
+    // Set the current health value to zero
+    let healthValue = new Uint8Array(1);
+    healthValue.set([0]);
+    await writeToAddress(romData.WRAM_START + 0xF36D, healthValue);
+
+    // Deal eight damage to Link
+    let damageAmount = new Uint8Array(1);
+    damageAmount.set([8]);
+    await writeToAddress(romData.WRAM_START + 0x0373, damageAmount);
+  };
+
+  /**
+   * Determine if the player is currently dead
+   * @returns {Promise<boolean>}
+   */
+  isPlayerDead = async () => {
+    const gameMode = await readFromAddress(romData.WRAM_START + 0x10, 0x01);
+    if (gameMode === null) { return false; }
+    return romData.DEATH_MODES.includes(gameMode[0]);
+
+  };
 }
 
 // Notify the client the game logic has been loaded
