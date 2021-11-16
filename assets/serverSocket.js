@@ -302,6 +302,7 @@ const connectToServer = (address, password = null) => {
         case 'Bounced':
           // This command can be used for a variety of things. Currently, it is used for keep-alive and DeathLink.
           // keep-alive packets can be safely ignored
+          console.log(command);
 
           // DeathLink handling
           if (command.tags.includes('DeathLink') && await gameInstance.isDeathLinkEnabled()) {
@@ -404,16 +405,21 @@ const requestDataPackage = () => {
 
 const buildItemAndLocationData = (dataPackage) => {
   Object.keys(dataPackage.games).forEach((gameName) => {
+    apItemsByName[gameName] = dataPackage.games[gameName].item_name_to_id;
+    apLocationsByName[gameName] = dataPackage.games[gameName].location_name_to_id;
+
+    // Create empty objects for each game
+    apItemsById[gameName] = {};
+    apLocationsById[gameName] = {};
+
+    // Build itemId map
     Object.keys(dataPackage.games[gameName].item_name_to_id).forEach((itemName) => {
       apItemsById[gameName][dataPackage.games[gameName].item_name_to_id[itemName]] = itemName;
-      apItemsByName[gameName][dataPackage.games[gameName][itemName]] =
-        dataPackage.games[gameName].item_name_to_id[itemName];
     });
 
+    // Build locationId map
     Object.keys(dataPackage.games[gameName].location_name_to_id).forEach((locationName) => {
       apLocationsById[gameName][dataPackage.games[gameName].location_name_to_id[locationName]] = locationName;
-      apLocationsByName[gameName][dataPackage.games[gameName][locationName]] =
-        dataPackage.games[gameName].location_name_to_id[locationName];
     });
   });
 };

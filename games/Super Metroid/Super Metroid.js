@@ -7,6 +7,11 @@ class GameInstance {
   // Has DeathLink been enabled?
   deathLinkEnabled = null;
 
+  // Item tracking
+  itemsReceived = [];
+
+  gameCompleted = false;
+
   constructor() {
     // Maybe do something here
   }
@@ -50,7 +55,9 @@ class GameInstance {
    * @returns {Promise<void>}
    * @constructor
    */
-  Connected = async (command) => {};
+  Connected = async (command) => {
+
+  };
 
   /**
    * Received when the client's authentication is refused by the AP server.
@@ -66,7 +73,20 @@ class GameInstance {
    * @returns {Promise<void>}
    * @constructor
    */
-  ReceivedItems = async (command) => {};
+  ReceivedItems = async (command) => {
+    // Save received items in the array of items to be sent to the SNES, if they have not been sent already
+    command.items.forEach((item) => {
+      // Items from locations with id 0 or lower are special cases, and should always be allowed
+      if (item.location <= 0) { return this.itemsReceived.push(item); }
+
+      // Do not receive items which were found by the local player, as they already have them
+      if (this.itemsReceived.find((ir) =>
+        ir.item === item.item && ir.location === item.location && ir.player === item.player
+      )) { return; }
+
+      this.itemsReceived.push(item);
+    });
+  };
 
   /**
    * Handle location scout confirmations
@@ -120,7 +140,113 @@ class GameInstance {
    * Run a single iteration of the client logic. Scan for location checks, send received items, etc.
    * @returns {Promise<unknown>}
    */
-  runClientLogic = () => new Promise(async (resolve, reject) => {});
+  runClientLogic = () => new Promise(async (resolve, reject) => {
+    // Fetch the current game mode
+    const gameMode = await readFromAddress(romData.WRAM_START + 0x0998, 1);
+
+    // If the game has been completed
+    if (gameMode && ENDGAME_MODES.includes(gameMode[0])) {
+      // Update the gameCompleted status in the client if it has not already been updated
+      if (!this.gameCompleted) {
+        if (serverSocket && serverSocket.readyState === WebSocket.OPEN) {
+          serverSocket.send(JSON.stringify([{
+            cmd: 'StatusUpdate',
+            status: CLIENT_STATUS.CLIENT_GOAL,
+          }]));
+          this.gameCompleted = true;
+        }
+      }
+
+      // Do not continue interacting with the ROM if the game is in an endgame state
+      return resolve();
+    }
+
+    // The Super Metroid Randomizer ROM keeps an internal array containing locations which the player
+    // has collected the item from. In this section, we scan that array beginning at the index of the last
+    // known location the player checked.
+    const checkArrayData = await readFromAddress(RECV_PROGRESS_ADDR + 0x680, 4);
+    const checkArrayIndex = checkArrayData[0] | (checkArrayData[1] << 8);
+    const checkArrayLength = checkArrayData[2] | (checkArrayData[3] << 8);
+
+    // Track any new location checks, and send them all in a single report later
+    const newLocationChecks = [];
+
+    // Fetch item information for each location check not yet acknowledged by the client and report it
+    // to the AP server. Each item entry is eight bytes long.
+    for (let index = checkArrayIndex; index < checkArrayLength; index++) {
+      const itemAddressOffset = index * 8; // Each entry in the array is eight bytes long
+      const itemData = await readFromAddress(RECV_PROGRESS_ADDR + 0x700 + itemAddressOffset, 8);
+
+      // worldId is only relevant to the ROM internally. It will contain 0 if the item is for the
+      // local player, and 1 if the item is for someone else. It is used to determine which text
+      // box the game displays for item pickup.
+      // const worldId = itemData[0] | (itemData[1] << 8);
+
+      // itemId is only relevant to the ROM internally. Its value maps to a Super Metroid item type
+      // or a single value which is incremented each time the client receives an item. It is used to
+      // determine the item type text printed in the text box for item pickup.
+      // const itemId = itemData[2] | (itemData[3] << 8); // Only relevant to the ROM
+
+      // itemIndex is the index of the relevant item in the ROM's internal array of checked locations
+      const itemIndex = (itemData[4] | (itemData[5] << 8)) >> 3;
+
+      // itemData[7] and itemData[8] are always empty bytes. They are reserved for future use.
+
+      // Add the AP locationId to the array of new location checks to be sent to the AP server
+      newLocationChecks.push(LOCATIONS_START_ID + itemIndex);
+    }
+
+    // If new locations have been checked, send those checks to the AP server
+    if (newLocationChecks.length > 0) {
+      if (serverSocket && serverSocket.readyState === WebSocket.OPEN) {
+        // TODO: Write this function
+        this.sendLocationChecks(newLocationChecks);
+
+        // Update the ROM with the index of the latest item which has been acknowledged by the client
+        const indexUpdateData = new Uint8Array(2);
+        indexUpdateData.set([
+          (checkArrayIndex + newLocationChecks.length) & 0xFF,
+          ((checkArrayIndex + newLocationChecks.length) >> 8) & 0xFF,
+        ]);
+        await writeToAddress(RECV_PROGRESS_ADDR + 0x680, indexUpdateData);
+      }
+    }
+
+    // If the client is currently accepting items, send those items to the ROM
+    if (receiveItems) {
+      const receivedItemData = await readFromAddress(RECV_PROGRESS_ADDR + 0x600, 4);
+      // const whatIsThis = receivedItemData[0] | (receivedItemData[1] << 8);
+      const receivedItemCount = receivedItemData[2] | (receivedItemData[3] << 8);
+
+      if (receivedItemCount < this.itemsReceived.length) {
+        // Calculate itemId
+        const itemId = this.itemsReceived[receivedItemCount].item - ITEMS_START_ID;
+
+        // In the ROM, "Archipelago" is prepended to the list of players, so it is the first entry in the array
+        const playerId = itemsReceived[receivedItemCount].player === 0 ?
+          0 : itemsReceived[receivedItemCount].player;
+
+        // Send newly acquired item data to the ROM
+        const itemPayload = new Uint8Array(4);
+        itemPayload.set([
+          playerId & 0xFF,
+          (playerId >> 8) & 0xFF,
+          itemId & 0xFF,
+          (itemId >> 8) & 0xFF,
+        ]);
+        await writeToAddress(RECV_PROGRESS_ADDR + (receivedItemCount * 4), itemPayload);
+
+        const itemCountPayload = new Uint8Array(2);
+        itemCountPayload.set([
+          (receivedItemCount + 1) & 0xFF,
+          ((receivedItemCount + 1) >> 8) & 0xFF,
+        ]);
+        await writeToAddress(RECV_PROGRESS_ADDR + 0x602, itemCountPayload);
+      }
+    }
+
+    return resolve();
+  });
 
   /**
    * Handle the /locations command

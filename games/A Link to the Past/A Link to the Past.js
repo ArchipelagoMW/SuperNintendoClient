@@ -542,8 +542,9 @@ class GameInstance {
     if (this.deathLinkEnabled !== null) { return this.deathLinkEnabled; }
 
     // Determine if DeathLink is enabled
+    console.log(romData);
     const deathLinkFlag = await readFromAddress(romData.DEATH_LINK_ACTIVE_ADDR, 1);
-    this.deathLinkEnabled = parseInt(deathLinkFlag[0], 10) === 1;
+    this.deathLinkEnabled = (parseInt(deathLinkFlag[0], 10) === 1);
     return this.deathLinkEnabled;
   };
 

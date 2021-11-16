@@ -4,38 +4,6 @@ const romData = {
   WRAM_SIZE: 0x20000,
   SRAM_START: 0xE00000,
 
-  ROMNAME_START: this.SRAM_START + 0x2000,
-  ROMNAME_SIZE: 0x15,
-
-  INGAME_MODES: [0x07, 0x09, 0x0b],
-  ENDGAME_MODES: [0x19, 0x1a],
-  DEATH_MODES: [0x12],
-
-  SAVEDATA_START: this.WRAM_START + 0xF000,
-  SAVEDATA_SIZE: 0x500,
-
-  DEATH_LINK_ACTIVE_ADDR: this.ROM_START + 0x18008D,
-
-  // Received items are sent to the client as an array when it connects to the server. This array is sent in the
-  // same order every time. To survive a client restart, the index of the last item sent to the SNES is stored
-  // in the ROM. This also allows the client to re-send items to the dirty cheaters who rewind their game.
-  RECEIVED_ITEMS_INDEX: this.SAVEDATA_START + 0x4D0, // 2 bytes
-
-  // Location to write data when sending an item to a player
-  RECEIVED_ITEM_ADDRESS: this.SAVEDATA_START + 0x4D2, // 1 byte
-
-  // ID of the player who sent the item, which allows "Received from Player" while playing
-  RECEIVED_ITEM_SENDER_ADDRESS: this.SAVEDATA_START + 0x4D3, // 1 byte
-
-  ROOMID_ADDR: this.SAVEDATA_START + 0x4D4, // 2 bytes
-  ROOMDATA_ADDR: this.SAVEDATA_START + 0x4D6, // 1 byte
-  SCOUT_LOCATION_ADDR: this.SAVEDATA_START + 0x4D7, // 1 byte
-  SCOUTREPLY_LOCATION_ADDR: this.SAVEDATA_START + 0x4D8, // 1 byte
-  SCOUTREPLY_ITEM_ADDR: this.SAVEDATA_START + 0x4D9, // 1 byte
-  SCOUTREPLY_PLAYER_ADDR: this.SAVEDATA_START + 0x4DA, // 1 byte
-  SHOP_ADDR: this.SAVEDATA_START + 0x302, // 2 bytes
-  SHOP_ID_START: 0x400000,
-
   UNDERWORLD_LOCATIONS: {
     // "Location Name": [roomId, mask]
     "Blind's Hideout - Top": [0x11d, 0x10],
@@ -323,19 +291,51 @@ const romData = {
   },
 };
 
-RomData.SHOPS = {
+romData.ROMNAME_START = romData.SRAM_START + 0x2000;
+romData.ROMNAME_SIZE = 0x15;
+
+romData.INGAME_MODES = [0x07, 0x09, 0x0b];
+romData.ENDGAME_MODES = [0x19, 0x1a];
+romData.DEATH_MODES = [0x12];
+
+romData.SAVEDATA_START = romData.WRAM_START + 0xF000;
+romData.SAVEDATA_SIZE = 0x500;
+
+romData.DEATH_LINK_ACTIVE_ADDR = romData.ROM_START + 0x18008D;
+
+// Received items are sent to the client as an array when it connects to the server. This array is sent in the
+// same order every time. To survive a client restart, the index of the last item sent to the SNES is stored
+// in the ROM. This also allows the client to re-send items to the dirty cheaters who rewind their game.
+romData.RECEIVED_ITEMS_INDEX = romData.SAVEDATA_START + 0x4D0; // 2 bytes
+
+// Location to write data when sending an item to a player
+romData.RECEIVED_ITEM_ADDRESS = romData.SAVEDATA_START + 0x4D2; // 1 byte
+
+// ID of the player who sent the item, which allows "Received from Player" while playing
+romData.RECEIVED_ITEM_SENDER_ADDRESS = romData.SAVEDATA_START + 0x4D3; // 1 byte
+
+romData.ROOMID_ADDR = romData.SAVEDATA_START + 0x4D4; // 2 bytes
+romData.ROOMDATA_ADDR = romData.SAVEDATA_START + 0x4D6; // 1 byte
+romData.SCOUT_LOCATION_ADDR = romData.SAVEDATA_START + 0x4D7; // 1 byte
+romData.SCOUTREPLY_LOCATION_ADDR = romData.SAVEDATA_START + 0x4D8; // 1 byte
+romData.SCOUTREPLY_ITEM_ADDR = romData.SAVEDATA_START + 0x4D9; // 1 byte
+romData.SCOUTREPLY_PLAYER_ADDR = romData.SAVEDATA_START + 0x4DA; // 1 byte
+romData.SHOP_ADDR = romData.SAVEDATA_START + 0x302; // 2 bytes
+romData.SHOP_ID_START = 0x400000;
+
+romData.SHOPS = {
   'Cave Shop (Dark Death Mountain)': {
     locationId: 0x0112,
-    type: RomData.SHOP_TYPES.Shop,
+    type: romData.SHOP_TYPES.Shop,
     shopkeeper: 0xC1,
     custom: true,
     locked: false,
-    items: RomData.SHOP_INVENTORY_DEFAULTS.lightWorld,
+    items: romData.SHOP_INVENTORY_DEFAULTS.lightWorld,
     sramOffset: 0,
   },
   'Red Shield Shop': {
     locationId: 0x0110,
-    type: RomData.SHOP_TYPES.Shop,
+    type: romData.SHOP_TYPES.Shop,
     shopkeeper: 0xC1,
     custom: true,
     locked: false,
@@ -348,70 +348,70 @@ RomData.SHOPS = {
   },
   'Dark Lake Hylia Shop': {
     locationId: 0x010F,
-    type: RomData.SHOP_TYPES.Shop,
+    type: romData.SHOP_TYPES.Shop,
     shopkeeper: 0xC1,
     custom: true,
     locked: false,
-    items: RomData.SHOP_INVENTORY_DEFAULTS.darkWorld,
+    items: romData.SHOP_INVENTORY_DEFAULTS.darkWorld,
     sramOffset: 6,
   },
   'Dark World Lumberjack Shop': {
     locationId: 0x010F,
-    type: RomData.SHOP_TYPES.Shop,
+    type: romData.SHOP_TYPES.Shop,
     shopkeeper: 0xC1,
     custom: true,
     locked: false,
-    items: RomData.SHOP_INVENTORY_DEFAULTS.darkWorld,
+    items: romData.SHOP_INVENTORY_DEFAULTS.darkWorld,
     sramOffset: 9,
   },
   'Village of Outcasts Shop': {
     locationId: 0x010F,
-    type: RomData.SHOP_TYPES.Shop,
+    type: romData.SHOP_TYPES.Shop,
     shopkeeper: 0xC1,
     custom: true,
     locked: false,
-    items: RomData.SHOP_INVENTORY_DEFAULTS.darkWorld,
+    items: romData.SHOP_INVENTORY_DEFAULTS.darkWorld,
     sramOffset: 12,
   },
   'Dark World Potion Shop': {
     locationId: 0x010F,
-    type: RomData.SHOP_TYPES.Shop,
+    type: romData.SHOP_TYPES.Shop,
     shopkeeper: 0xC1,
     custom: true,
     locked: false,
-    items: RomData.SHOP_INVENTORY_DEFAULTS.darkWorld,
+    items: romData.SHOP_INVENTORY_DEFAULTS.darkWorld,
     sramOffset: 15,
   },
   'Light World Death Mountain Shop': {
     locationId: 0x00FF,
-    type: RomData.SHOP_TYPES.Shop,
+    type: romData.SHOP_TYPES.Shop,
     shopkeeper: 0xA0,
     custom: true,
     locked: false,
-    items: RomData.SHOP_INVENTORY_DEFAULTS.lightWorld,
+    items: romData.SHOP_INVENTORY_DEFAULTS.lightWorld,
     sramOffset: 18,
   },
   'Kakariko Shop': {
     locationId: 0x011F,
-    type: RomData.SHOP_TYPES.Shop,
+    type: romData.SHOP_TYPES.Shop,
     shopkeeper: 0xA0,
     custom: true,
     locked: false,
-    items: RomData.SHOP_INVENTORY_DEFAULTS.lightWorld,
+    items: romData.SHOP_INVENTORY_DEFAULTS.lightWorld,
     sramOffset: 21,
   },
   'Cave Shop (Lake Hylia)': {
     locationId: 0x0112,
-    type: RomData.SHOP_TYPES.Shop,
+    type: romData.SHOP_TYPES.Shop,
     shopkeeper: 0xA0,
     custom: true,
     locked: false,
-    items: RomData.SHOP_INVENTORY_DEFAULTS.lightWorld,
+    items: romData.SHOP_INVENTORY_DEFAULTS.lightWorld,
     sramOffset: 24,
   },
   'Potion Shop': {
     locationId: 0x0109,
-    type: RomData.SHOP_TYPES.Shop,
+    type: romData.SHOP_TYPES.Shop,
     shopkeeper: 0xA0,
     custom: true,
     locked: true,
@@ -424,7 +424,7 @@ RomData.SHOPS = {
   },
   'Capacity Upgrade': {
     locationId: 0x0115,
-    type: RomData.SHOP_TYPES.UpgradeShop,
+    type: romData.SHOP_TYPES.UpgradeShop,
     shopkeeper: 0x04,
     custom: true,
     locked: true,
@@ -437,4 +437,4 @@ RomData.SHOPS = {
 };
 
 // Create an array containing only shopIds
-RomData.shopIds = Object.values(RomData.SHOPS).map((shop) => shop.locationId)
+romData.shopIds = Object.values(romData.SHOPS).map((shop) => shop.locationId)
