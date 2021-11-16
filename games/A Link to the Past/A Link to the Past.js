@@ -56,84 +56,89 @@ class GameInstance {
    */
   RoomInfo = async (command) => {
     // Build custom location data
-    const locationIds = Object.keys(apLocationsById['A Link to the Past']);
-    const locationNames = Object.values(apLocationsById['A Link to the Past']);
+    let dataPackage = localStorage.getItem('dataPackage');
+    if (dataPackage) {
+      dataPackage = JSON.parse(dataPackage);
+      console.log(dataPackage);
+      const locationIds = Object.values(dataPackage.games['A Link to the Past'].item_name_to_id);
+      const locationNames = Object.keys(dataPackage.games['A Link to the Past'].item_name_to_id);
 
-    Object.keys(romData.UNDERWORLD_LOCATIONS).forEach((uwLocationName) => {
-      this.locationsById['underworld'][locationIds[locationNames.indexOf(uwLocationName)]] = {
-        name: uwLocationName,
-        locationId: Number(locationIds[locationNames.indexOf(uwLocationName)]),
-        roomId: romData.UNDERWORLD_LOCATIONS[uwLocationName][0],
-        mask: romData.UNDERWORLD_LOCATIONS[uwLocationName][1],
-      }
+      Object.keys(romData.UNDERWORLD_LOCATIONS).forEach((uwLocationName) => {
+        this.locationsById['underworld'][locationIds[locationNames.indexOf(uwLocationName)]] = {
+          name: uwLocationName,
+          locationId: Number(locationIds[locationNames.indexOf(uwLocationName)]),
+          roomId: romData.UNDERWORLD_LOCATIONS[uwLocationName][0],
+          mask: romData.UNDERWORLD_LOCATIONS[uwLocationName][1],
+        }
 
-      if (!this.locationsByRoomId['underworld'].hasOwnProperty(romData.UNDERWORLD_LOCATIONS[uwLocationName][0])) {
-        this.locationsByRoomId['underworld'][romData.UNDERWORLD_LOCATIONS[uwLocationName][0]] = [];
-      }
-      this.locationsByRoomId['underworld'][romData.UNDERWORLD_LOCATIONS[uwLocationName][0]].push({
-        name: uwLocationName,
-        locationId: Number(locationIds[locationNames.indexOf(uwLocationName)]),
-        roomId: romData.UNDERWORLD_LOCATIONS[uwLocationName][0],
-        mask: romData.UNDERWORLD_LOCATIONS[uwLocationName][1],
+        if (!this.locationsByRoomId['underworld'].hasOwnProperty(romData.UNDERWORLD_LOCATIONS[uwLocationName][0])) {
+          this.locationsByRoomId['underworld'][romData.UNDERWORLD_LOCATIONS[uwLocationName][0]] = [];
+        }
+        this.locationsByRoomId['underworld'][romData.UNDERWORLD_LOCATIONS[uwLocationName][0]].push({
+          name: uwLocationName,
+          locationId: Number(locationIds[locationNames.indexOf(uwLocationName)]),
+          roomId: romData.UNDERWORLD_LOCATIONS[uwLocationName][0],
+          mask: romData.UNDERWORLD_LOCATIONS[uwLocationName][1],
+        });
       });
-    });
 
-    Object.keys(romData.OVERWORLD_LOCATIONS).forEach((owLocationName) => {
-      this.locationsById['overworld'][locationIds[locationNames.indexOf(owLocationName)]] = {
-        name: owLocationName,
-        locationId: Number(locationIds[locationNames.indexOf(owLocationName)]),
-        screenId: romData.OVERWORLD_LOCATIONS[owLocationName],
-        mask: null,
-      };
+      Object.keys(romData.OVERWORLD_LOCATIONS).forEach((owLocationName) => {
+        this.locationsById['overworld'][locationIds[locationNames.indexOf(owLocationName)]] = {
+          name: owLocationName,
+          locationId: Number(locationIds[locationNames.indexOf(owLocationName)]),
+          screenId: romData.OVERWORLD_LOCATIONS[owLocationName],
+          mask: null,
+        };
 
-      if (!this.locationsByRoomId['overworld'].hasOwnProperty(romData.OVERWORLD_LOCATIONS[owLocationName])) {
-        this.locationsByRoomId['overworld'][romData.OVERWORLD_LOCATIONS[owLocationName]] = [];
-      }
-      this.locationsByRoomId['overworld'][romData.OVERWORLD_LOCATIONS[owLocationName]].push({
-        name: owLocationName,
-        locationId: Number(locationIds[locationNames.indexOf(owLocationName)]),
-        screenId: romData.OVERWORLD_LOCATIONS[owLocationName],
-        mask: null,
+        if (!this.locationsByRoomId['overworld'].hasOwnProperty(romData.OVERWORLD_LOCATIONS[owLocationName])) {
+          this.locationsByRoomId['overworld'][romData.OVERWORLD_LOCATIONS[owLocationName]] = [];
+        }
+        this.locationsByRoomId['overworld'][romData.OVERWORLD_LOCATIONS[owLocationName]].push({
+          name: owLocationName,
+          locationId: Number(locationIds[locationNames.indexOf(owLocationName)]),
+          screenId: romData.OVERWORLD_LOCATIONS[owLocationName],
+          mask: null,
+        });
       });
-    });
 
-    Object.keys(romData.NPC_LOCATIONS).forEach((npcLocationName) => {
-      this.locationsById['npc'][locationIds[locationNames.indexOf(npcLocationName)]] = {
-        name: npcLocationName,
-        locationId: Number(locationIds[locationNames.indexOf(npcLocationName)]),
-        screenId: romData.NPC_LOCATIONS[npcLocationName],
-        mask: null,
-      };
+      Object.keys(romData.NPC_LOCATIONS).forEach((npcLocationName) => {
+        this.locationsById['npc'][locationIds[locationNames.indexOf(npcLocationName)]] = {
+          name: npcLocationName,
+          locationId: Number(locationIds[locationNames.indexOf(npcLocationName)]),
+          screenId: romData.NPC_LOCATIONS[npcLocationName],
+          mask: null,
+        };
 
-      if (!this.locationsByRoomId['npc'].hasOwnProperty(romData.NPC_LOCATIONS[npcLocationName])) {
-        this.locationsByRoomId['npc'][romData.NPC_LOCATIONS[npcLocationName]] = [];
-      }
-      this.locationsByRoomId['npc'][romData.NPC_LOCATIONS[npcLocationName]].push({
-        name: npcLocationName,
-        locationId: Number(locationIds[locationNames.indexOf(npcLocationName)]),
-        screenId: romData.NPC_LOCATIONS[npcLocationName],
-        mask: null,
+        if (!this.locationsByRoomId['npc'].hasOwnProperty(romData.NPC_LOCATIONS[npcLocationName])) {
+          this.locationsByRoomId['npc'][romData.NPC_LOCATIONS[npcLocationName]] = [];
+        }
+        this.locationsByRoomId['npc'][romData.NPC_LOCATIONS[npcLocationName]].push({
+          name: npcLocationName,
+          locationId: Number(locationIds[locationNames.indexOf(npcLocationName)]),
+          screenId: romData.NPC_LOCATIONS[npcLocationName],
+          mask: null,
+        });
       });
-    });
 
-    Object.keys(romData.MISC_LOCATIONS).forEach((miscLocationName) => {
-      this.locationsById['misc'][locationIds[locationNames.indexOf(miscLocationName)]] = {
-        name: miscLocationName,
-        locationId: Number(locationIds[locationNames.indexOf(miscLocationName)]),
-        roomId: romData.MISC_LOCATIONS[miscLocationName][0],
-        mask: romData.MISC_LOCATIONS[miscLocationName][1],
-      };
+      Object.keys(romData.MISC_LOCATIONS).forEach((miscLocationName) => {
+        this.locationsById['misc'][locationIds[locationNames.indexOf(miscLocationName)]] = {
+          name: miscLocationName,
+          locationId: Number(locationIds[locationNames.indexOf(miscLocationName)]),
+          roomId: romData.MISC_LOCATIONS[miscLocationName][0],
+          mask: romData.MISC_LOCATIONS[miscLocationName][1],
+        };
 
-      if (!this.locationsByRoomId['misc'].hasOwnProperty(romData.MISC_LOCATIONS[miscLocationName][0])) {
-        this.locationsByRoomId['misc'][romData.MISC_LOCATIONS[miscLocationName][0]] = [];
-      }
-      this.locationsByRoomId['misc'][romData.MISC_LOCATIONS[miscLocationName][0]].push({
-        name: miscLocationName,
-        locationId: Number(locationIds[locationNames.indexOf(miscLocationName)]),
-        roomId: romData.MISC_LOCATIONS[miscLocationName][0],
-        mask: romData.MISC_LOCATIONS[miscLocationName][1],
+        if (!this.locationsByRoomId['misc'].hasOwnProperty(romData.MISC_LOCATIONS[miscLocationName][0])) {
+          this.locationsByRoomId['misc'][romData.MISC_LOCATIONS[miscLocationName][0]] = [];
+        }
+        this.locationsByRoomId['misc'][romData.MISC_LOCATIONS[miscLocationName][0]].push({
+          name: miscLocationName,
+          locationId: Number(locationIds[locationNames.indexOf(miscLocationName)]),
+          roomId: romData.MISC_LOCATIONS[miscLocationName][0],
+          mask: romData.MISC_LOCATIONS[miscLocationName][1],
+        });
       });
-    });
+    }
   };
 
   /**
@@ -231,7 +236,88 @@ class GameInstance {
    * @returns {Promise<void>}
    * @constructor
    */
-  DataPackage = async (command) => {};
+  DataPackage = async (command) => {
+    const dataPackage = JSON.parse(command.data);
+    console.log(dataPackage);
+    const locationIds = Object.values(dataPackage.games['A Link to the Past'].item_name_to_id);
+    const locationNames = Object.keys(dataPackage.games['A Link to the Past'].item_name_to_id);
+
+    Object.keys(romData.UNDERWORLD_LOCATIONS).forEach((uwLocationName) => {
+      this.locationsById['underworld'][locationIds[locationNames.indexOf(uwLocationName)]] = {
+        name: uwLocationName,
+        locationId: Number(locationIds[locationNames.indexOf(uwLocationName)]),
+        roomId: romData.UNDERWORLD_LOCATIONS[uwLocationName][0],
+        mask: romData.UNDERWORLD_LOCATIONS[uwLocationName][1],
+      }
+
+      if (!this.locationsByRoomId['underworld'].hasOwnProperty(romData.UNDERWORLD_LOCATIONS[uwLocationName][0])) {
+        this.locationsByRoomId['underworld'][romData.UNDERWORLD_LOCATIONS[uwLocationName][0]] = [];
+      }
+      this.locationsByRoomId['underworld'][romData.UNDERWORLD_LOCATIONS[uwLocationName][0]].push({
+        name: uwLocationName,
+        locationId: Number(locationIds[locationNames.indexOf(uwLocationName)]),
+        roomId: romData.UNDERWORLD_LOCATIONS[uwLocationName][0],
+        mask: romData.UNDERWORLD_LOCATIONS[uwLocationName][1],
+      });
+    });
+
+    Object.keys(romData.OVERWORLD_LOCATIONS).forEach((owLocationName) => {
+      this.locationsById['overworld'][locationIds[locationNames.indexOf(owLocationName)]] = {
+        name: owLocationName,
+        locationId: Number(locationIds[locationNames.indexOf(owLocationName)]),
+        screenId: romData.OVERWORLD_LOCATIONS[owLocationName],
+        mask: null,
+      };
+
+      if (!this.locationsByRoomId['overworld'].hasOwnProperty(romData.OVERWORLD_LOCATIONS[owLocationName])) {
+        this.locationsByRoomId['overworld'][romData.OVERWORLD_LOCATIONS[owLocationName]] = [];
+      }
+      this.locationsByRoomId['overworld'][romData.OVERWORLD_LOCATIONS[owLocationName]].push({
+        name: owLocationName,
+        locationId: Number(locationIds[locationNames.indexOf(owLocationName)]),
+        screenId: romData.OVERWORLD_LOCATIONS[owLocationName],
+        mask: null,
+      });
+    });
+
+    Object.keys(romData.NPC_LOCATIONS).forEach((npcLocationName) => {
+      this.locationsById['npc'][locationIds[locationNames.indexOf(npcLocationName)]] = {
+        name: npcLocationName,
+        locationId: Number(locationIds[locationNames.indexOf(npcLocationName)]),
+        screenId: romData.NPC_LOCATIONS[npcLocationName],
+        mask: null,
+      };
+
+      if (!this.locationsByRoomId['npc'].hasOwnProperty(romData.NPC_LOCATIONS[npcLocationName])) {
+        this.locationsByRoomId['npc'][romData.NPC_LOCATIONS[npcLocationName]] = [];
+      }
+      this.locationsByRoomId['npc'][romData.NPC_LOCATIONS[npcLocationName]].push({
+        name: npcLocationName,
+        locationId: Number(locationIds[locationNames.indexOf(npcLocationName)]),
+        screenId: romData.NPC_LOCATIONS[npcLocationName],
+        mask: null,
+      });
+    });
+
+    Object.keys(romData.MISC_LOCATIONS).forEach((miscLocationName) => {
+      this.locationsById['misc'][locationIds[locationNames.indexOf(miscLocationName)]] = {
+        name: miscLocationName,
+        locationId: Number(locationIds[locationNames.indexOf(miscLocationName)]),
+        roomId: romData.MISC_LOCATIONS[miscLocationName][0],
+        mask: romData.MISC_LOCATIONS[miscLocationName][1],
+      };
+
+      if (!this.locationsByRoomId['misc'].hasOwnProperty(romData.MISC_LOCATIONS[miscLocationName][0])) {
+        this.locationsByRoomId['misc'][romData.MISC_LOCATIONS[miscLocationName][0]] = [];
+      }
+      this.locationsByRoomId['misc'][romData.MISC_LOCATIONS[miscLocationName][0]].push({
+        name: miscLocationName,
+        locationId: Number(locationIds[locationNames.indexOf(miscLocationName)]),
+        roomId: romData.MISC_LOCATIONS[miscLocationName][0],
+        mask: romData.MISC_LOCATIONS[miscLocationName][1],
+      });
+    });
+  };
 
   /**
    * Received for a variety of reasons.
@@ -542,7 +628,6 @@ class GameInstance {
     if (this.deathLinkEnabled !== null) { return this.deathLinkEnabled; }
 
     // Determine if DeathLink is enabled
-    console.log(romData);
     const deathLinkFlag = await readFromAddress(romData.DEATH_LINK_ACTIVE_ADDR, 1);
     this.deathLinkEnabled = (parseInt(deathLinkFlag[0], 10) === 1);
     return this.deathLinkEnabled;

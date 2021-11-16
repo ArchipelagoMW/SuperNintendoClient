@@ -21,7 +21,7 @@ const permissionMap = {
   7: 'Enabled + Auto',
 };
 
-// Item and location maps grouped by game, ex. apItemsById['Super Metroid'][itemId] might contain 'Morph Ball'
+// Item and location maps
 let apItemsById = {};
 let apItemsByName = {};
 let apLocationsById = {};

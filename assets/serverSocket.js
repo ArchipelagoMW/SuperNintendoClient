@@ -148,7 +148,8 @@ const connectToServer = (address, password = null) => {
 
           // Set the hint cost text
           document.getElementById('hint-cost').innerText =
-            (Math.round((hintCost / 100) * (checkedLocations.length + missingLocations.length))).toString();
+            (Math.round((hintCost / 100) *
+              (gameInstance.checkedLocations.length + gameInstance.missingLocations.length))).toString();
 
           // Update header text
           serverStatus.classList.remove('disconnected');
@@ -305,7 +306,11 @@ const connectToServer = (address, password = null) => {
           console.log(command);
 
           // DeathLink handling
-          if (command.tags.includes('DeathLink') && await gameInstance.isDeathLinkEnabled()) {
+          if (
+            command.hasOwnProperty('tags') && // If there are tags on this message
+            command.tags.includes('DeathLink') && // If those tags include DeathLink
+            await gameInstance.isDeathLinkEnabled() // If DeathLink is enabled
+          ) {
             // TODO: Implement DeathLink handling
           }
 
@@ -405,21 +410,18 @@ const requestDataPackage = () => {
 
 const buildItemAndLocationData = (dataPackage) => {
   Object.keys(dataPackage.games).forEach((gameName) => {
-    apItemsByName[gameName] = dataPackage.games[gameName].item_name_to_id;
-    apLocationsByName[gameName] = dataPackage.games[gameName].location_name_to_id;
-
-    // Create empty objects for each game
-    apItemsById[gameName] = {};
-    apLocationsById[gameName] = {};
+    apItemsByName = Object.assign({}, apItemsByName, dataPackage.games[gameName].item_name_to_id);
+    apLocationsByName = Object.assign({}, apLocationsByName, dataPackage.games[gameName].location_name_to_id);
 
     // Build itemId map
     Object.keys(dataPackage.games[gameName].item_name_to_id).forEach((itemName) => {
-      apItemsById[gameName][dataPackage.games[gameName].item_name_to_id[itemName]] = itemName;
+      apItemsById[dataPackage.games[gameName].item_name_to_id[itemName]] = itemName;
+
     });
 
     // Build locationId map
     Object.keys(dataPackage.games[gameName].location_name_to_id).forEach((locationName) => {
-      apLocationsById[gameName][dataPackage.games[gameName].location_name_to_id[locationName]] = locationName;
+      apLocationsById[dataPackage.games[gameName].location_name_to_id[locationName]] = locationName;
     });
   });
 };
