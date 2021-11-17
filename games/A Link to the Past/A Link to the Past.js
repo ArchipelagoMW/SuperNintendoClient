@@ -59,7 +59,7 @@ class GameInstance {
     let dataPackage = localStorage.getItem('dataPackage');
     if (dataPackage) {
       dataPackage = JSON.parse(dataPackage);
-      const locationIds = Object.values(dataPackage.games['A Link to the Past'].item_name_to_id);
+      const locationIds = Object.values(dataPackage.games['A Link to the Past'].location_name_to_id);
       const locationNames = Object.keys(dataPackage.games['A Link to the Past'].location_name_to_id);
 
       Object.keys(romData.UNDERWORLD_LOCATIONS).forEach((uwLocationName) => {
@@ -237,8 +237,8 @@ class GameInstance {
    */
   DataPackage = async (command) => {
     const dataPackage = command.data;
-    const locationIds = Object.values(dataPackage.games['A Link to the Past'].item_name_to_id);
-    const locationNames = Object.keys(dataPackage.games['A Link to the Past'].item_name_to_id);
+    const locationIds = Object.values(dataPackage.games['A Link to the Past'].location_name_to_id);
+    const locationNames = Object.keys(dataPackage.games['A Link to the Past'].location_name_to_id);
 
     Object.keys(romData.UNDERWORLD_LOCATIONS).forEach((uwLocationName) => {
       this.locationsById['underworld'][locationIds[locationNames.indexOf(uwLocationName)]] = {
@@ -609,13 +609,13 @@ class GameInstance {
    * Returns the name of an item based on its ID
    * @param itemId
    */
-  getItemById = (itemId) => apItemsById['A Link to the Past'][itemId];
+  getItemById = (itemId) => apItemsById[itemId];
 
   /**
    * Returns the name of a location based on its ID
    * @param locationId
    */
-  getLocationById = (locationId) => apLocationsById['A Link to the Past'][locationId];
+  getLocationById = (locationId) => apLocationsById[locationId];
 
   /**
    * Determine if DeathLink is enabled
