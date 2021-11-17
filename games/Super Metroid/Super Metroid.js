@@ -55,9 +55,7 @@ class GameInstance {
    * @returns {Promise<void>}
    * @constructor
    */
-  Connected = async (command) => {
-
-  };
+  Connected = async (command) => {};
 
   /**
    * Received when the client's authentication is refused by the AP server.
@@ -145,7 +143,7 @@ class GameInstance {
     const gameMode = await readFromAddress(romData.WRAM_START + 0x0998, 1);
 
     // If the game has been completed
-    if (gameMode && ENDGAME_MODES.includes(gameMode[0])) {
+    if (gameMode && romData.ENDGAME_MODES.includes(gameMode[0])) {
       // Update the gameCompleted status in the client if it has not already been updated
       if (!this.gameCompleted) {
         if (serverSocket && serverSocket.readyState === WebSocket.OPEN) {
@@ -164,7 +162,7 @@ class GameInstance {
     // The Super Metroid Randomizer ROM keeps an internal array containing locations which the player
     // has collected the item from. In this section, we scan that array beginning at the index of the last
     // known location the player checked.
-    const checkArrayData = await readFromAddress(RECV_PROGRESS_ADDR + 0x680, 4);
+    const checkArrayData = await readFromAddress(romData.RECV_PROGRESS_ADDR + 0x680, 4);
     const checkArrayIndex = checkArrayData[0] | (checkArrayData[1] << 8);
     const checkArrayLength = checkArrayData[2] | (checkArrayData[3] << 8);
 
@@ -175,7 +173,7 @@ class GameInstance {
     // to the AP server. Each item entry is eight bytes long.
     for (let index = checkArrayIndex; index < checkArrayLength; index++) {
       const itemAddressOffset = index * 8; // Each entry in the array is eight bytes long
-      const itemData = await readFromAddress(RECV_PROGRESS_ADDR + 0x700 + itemAddressOffset, 8);
+      const itemData = await readFromAddress(romData.RECV_PROGRESS_ADDR + 0x700 + itemAddressOffset, 8);
 
       // worldId is only relevant to the ROM internally. It will contain 0 if the item is for the
       // local player, and 1 if the item is for someone else. It is used to determine which text
@@ -193,7 +191,7 @@ class GameInstance {
       // itemData[7] and itemData[8] are always empty bytes. They are reserved for future use.
 
       // Add the AP locationId to the array of new location checks to be sent to the AP server
-      newLocationChecks.push(LOCATIONS_START_ID + itemIndex);
+      newLocationChecks.push(romData.LOCATIONS_START_ID + itemIndex);
     }
 
     // If new locations have been checked, send those checks to the AP server
@@ -208,23 +206,23 @@ class GameInstance {
           (checkArrayIndex + newLocationChecks.length) & 0xFF,
           ((checkArrayIndex + newLocationChecks.length) >> 8) & 0xFF,
         ]);
-        await writeToAddress(RECV_PROGRESS_ADDR + 0x680, indexUpdateData);
+        await writeToAddress(romData.RECV_PROGRESS_ADDR + 0x680, indexUpdateData);
       }
     }
 
     // If the client is currently accepting items, send those items to the ROM
     if (receiveItems) {
-      const receivedItemData = await readFromAddress(RECV_PROGRESS_ADDR + 0x600, 4);
+      const receivedItemData = await readFromAddress(romData.RECV_PROGRESS_ADDR + 0x600, 4);
       // const whatIsThis = receivedItemData[0] | (receivedItemData[1] << 8);
       const receivedItemCount = receivedItemData[2] | (receivedItemData[3] << 8);
 
       if (receivedItemCount < this.itemsReceived.length) {
         // Calculate itemId
-        const itemId = this.itemsReceived[receivedItemCount].item - ITEMS_START_ID;
+        const itemId = this.itemsReceived[receivedItemCount].item - romData.ITEMS_START_ID;
 
         // In the ROM, "Archipelago" is prepended to the list of players, so it is the first entry in the array
-        const playerId = itemsReceived[receivedItemCount].player === 0 ?
-          0 : itemsReceived[receivedItemCount].player;
+        const playerId = this.itemsReceived[receivedItemCount].player === 0 ?
+          0 : this.itemsReceived[receivedItemCount].player;
 
         // Send newly acquired item data to the ROM
         const itemPayload = new Uint8Array(4);
@@ -234,14 +232,14 @@ class GameInstance {
           itemId & 0xFF,
           (itemId >> 8) & 0xFF,
         ]);
-        await writeToAddress(RECV_PROGRESS_ADDR + (receivedItemCount * 4), itemPayload);
+        await writeToAddress(romData.RECV_PROGRESS_ADDR + (receivedItemCount * 4), itemPayload);
 
         const itemCountPayload = new Uint8Array(2);
         itemCountPayload.set([
           (receivedItemCount + 1) & 0xFF,
           ((receivedItemCount + 1) >> 8) & 0xFF,
         ]);
-        await writeToAddress(RECV_PROGRESS_ADDR + 0x602, itemCountPayload);
+        await writeToAddress(romData.RECV_PROGRESS_ADDR + 0x602, itemCountPayload);
       }
     }
 
@@ -257,13 +255,13 @@ class GameInstance {
    * Returns the name of an item based on its ID
    * @param itemId
    */
-  getItemById = (itemId) => apItemsById['Super Metroid'][itemId];
+  getItemById = (itemId) => apItemsById[itemId];
 
   /**
    * Returns the name of a location based on its ID
    * @param locationId
    */
-  getLocationById = (locationId) => apLocationsById['Super Metroid'][locationId];
+  getLocationById = (locationId) => apLocationsById[locationId];
 
   /**
    * Determine if this ROM has DeathLink enabled
