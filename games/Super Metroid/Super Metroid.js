@@ -4,6 +4,8 @@
  */
 class GameInstance {
   /** Instance Variables */
+  gameName = 'Super Metroid';
+
   // Has DeathLink been enabled?
   deathLinkEnabled = null;
 
@@ -245,6 +247,17 @@ class GameInstance {
 
     return resolve();
   });
+
+  /**
+   * Append to the local list of location checks, and inform the AP server of new checks
+   * @param locationIds
+   */
+  sendLocationChecks = (locationIds) => {
+    serverSocket.send(JSON.stringify([{
+      cmd: 'LocationChecks',
+      locations: locationIds,
+    }]));
+  };
 
   /**
    * Handle the /locations command

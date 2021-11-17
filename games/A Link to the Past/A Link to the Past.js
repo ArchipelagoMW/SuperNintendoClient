@@ -4,6 +4,8 @@
  */
 class GameInstance {
   /** Instance Variables */
+  gameName = 'A Link to the Past';
+
   // Item tracking
   checkedLocations = [];
   missingLocations = [];

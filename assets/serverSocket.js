@@ -149,7 +149,7 @@ const connectToServer = (address, password = null) => {
           // Set the hint cost text
           document.getElementById('hint-cost').innerText =
             (Math.round((hintCost / 100) *
-              (gameInstance.checkedLocations.length + gameInstance.missingLocations.length))).toString();
+              (command.checked_locations.length + command.missing_locations.length))).toString();
 
           // Update header text
           serverStatus.classList.remove('disconnected');
@@ -258,8 +258,9 @@ const connectToServer = (address, password = null) => {
 
           if (command.hasOwnProperty('hint_cost')) {
             hintCost = Number(command.hint_cost);
+            const dataPackage = JSON.parse(localStorage.getItem('dataPackage'));
             document.getElementById('hint-cost').innerText =
-              (Math.floor((hintCost / 100) * (checkedLocations.length + missingLocations.length))).toString();
+              (Math.floor((hintCost / 100) * Object.keys(dataPackage.games[gameInstance.gameName]).length)).toString();
           }
 
           if (command.hasOwnProperty('location_check_points')) {
