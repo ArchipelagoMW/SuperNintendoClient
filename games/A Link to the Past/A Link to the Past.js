@@ -59,9 +59,8 @@ class GameInstance {
     let dataPackage = localStorage.getItem('dataPackage');
     if (dataPackage) {
       dataPackage = JSON.parse(dataPackage);
-      console.log(dataPackage);
       const locationIds = Object.values(dataPackage.games['A Link to the Past'].item_name_to_id);
-      const locationNames = Object.keys(dataPackage.games['A Link to the Past'].item_name_to_id);
+      const locationNames = Object.keys(dataPackage.games['A Link to the Past'].location_name_to_id);
 
       Object.keys(romData.UNDERWORLD_LOCATIONS).forEach((uwLocationName) => {
         this.locationsById['underworld'][locationIds[locationNames.indexOf(uwLocationName)]] = {
@@ -237,8 +236,7 @@ class GameInstance {
    * @constructor
    */
   DataPackage = async (command) => {
-    const dataPackage = JSON.parse(command.data);
-    console.log(dataPackage);
+    const dataPackage = command.data;
     const locationIds = Object.values(dataPackage.games['A Link to the Past'].item_name_to_id);
     const locationNames = Object.keys(dataPackage.games['A Link to the Past'].item_name_to_id);
 
@@ -457,7 +455,7 @@ class GameInstance {
             newChecks.push(location.locationId);
           }
         }
-        this.sendLocationChecks(newChecks);
+        if (newChecks.length > 0) { this.sendLocationChecks(newChecks); }
       }
 
       // In the below loops, the entire SNES data is pulled to see if any items have already
