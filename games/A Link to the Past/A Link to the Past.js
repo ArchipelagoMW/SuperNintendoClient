@@ -657,7 +657,6 @@ class GameInstance {
     const gameMode = await readFromAddress(romData.WRAM_START + 0x10, 0x01);
     if (gameMode === null) { return false; }
     return romData.DEATH_MODES.includes(gameMode[0]);
-
   };
 }
 

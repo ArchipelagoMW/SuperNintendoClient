@@ -23,6 +23,7 @@ let reconnectTimeout = null;
 let snesInterval = null;
 let snesIntervalComplete = true;
 let lastBounce = 0;
+let deathLinkPrimed = true;
 
 const CLIENT_STATUS = {
   CLIENT_UNKNOWN: 0,
@@ -166,7 +167,7 @@ const connectToServer = (address, password = null) => {
           // Run game-specific handler
           await gameInstance.Connected(command);
 
-          snesInterval = setInterval(() => {
+          snesInterval = setInterval(async () => {
             // DO not run multiple simultaneous scan loops
             if (!snesIntervalComplete) { return; }
 
@@ -183,6 +184,33 @@ const connectToServer = (address, password = null) => {
                   slots: [playerSlot],
                   data: currentTime,
                 }]));
+              }
+            }
+
+            // DeathLink Logic
+            if (await gameInstance.isDeathLinkEnabled()) {
+              // If the player is dead and DeathLink is primed, send a DeathLink signal
+              const playerIsDead = await gameInstance.isPlayerDead();
+              if (playerIsDead && deathLinkPrimed) {
+                if (serverSocket && serverSocket.readyState === WebSocket.OPEN) {
+                  serverSocket.send(JSON.stringify([{
+                    cmd: 'Bounce',
+                    tags: ['DeathLink'],
+                    data: {
+                      time: new Date().getTime() / 1000,
+                      source: players.find((player) =>
+                        (player.team === playerTeam) && (player.slot === playerSlot)).alias,
+                    }
+                  }]));
+
+                  // Un-prime DeathLink to prevent sending multiple signals per death
+                  deathLinkPrimed = false;
+                }
+              }
+
+              // If the player is alive, DeathLink signals may be sent again
+              if (!playerIsDead) {
+                deathLinkPrimed = true;
               }
             }
 
@@ -312,7 +340,30 @@ const connectToServer = (address, password = null) => {
             command.tags.includes('DeathLink') && // If those tags include DeathLink
             await gameInstance.isDeathLinkEnabled() // If DeathLink is enabled
           ) {
-            // TODO: Implement DeathLink handling
+            // Un-prime DeathLink to prevent sending a signal in response to this death, kill the player,
+            // print a message to the console informing the player of who is responsible
+            deathLinkPrimed = false;
+            await gameInstance.killPlayer();
+
+            // Might as well have some fun while we're here
+            const deathLinkMessages = [
+              `${command.data.source} has died, and took you with them.`,
+              `${command.data.source} has met with a terrible fate, and they felt like sharing.`,
+              `${command.data.source} dug a grave big enough for everyone to share.`,
+              `Oh look, everyone died! Blame ${command.data.source}.`,
+              `Don't worry ${command.data.source}, nobody saw that. Because they're dead too.`,
+              `Have you ever heard the tragedy of Darth ${command.data.source} the wise?`,
+              `Death comes for us all. Because ${command.data.source} invited him.`,
+              `Death-warps aren't an option right now, ${command.data.source}...`,
+              `${command.data.source} used DeathLink! It's super-effective!`,
+              `Run for your lives! ${command.data.source} is killing people!`,
+              `Is ${command.data.source} throwing for content?`,
+              `${command.data.source} took an arrow to the knee. Now, their adventuring days are over.`,
+              `${command.data.source} has won a free trip to the title screen, and they invited some friends!`,
+              `All ${command.data.source}'s base are belong to us.`,
+              `It's dangerous to go alone, ${command.data.source}. Take everyone with you.`,
+            ];
+            appendConsoleMessage(deathLinkMessages[Math.floor(Math.random() * (deathLinkMessages.length))]);
           }
 
           await gameInstance.Bounced(command);
