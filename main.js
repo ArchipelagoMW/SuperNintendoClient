@@ -88,7 +88,7 @@ if (require('electron-squirrel-startup')) {
 
     // Create the registry keys for the main program
     childProcess.execSync(`reg add HKCU\\SOFTWARE\\Classes\\archipelago.snc.base /ve /d "Archipelago Super Nintendo Client" /f`);
-    childProcess.execSync(`reg add HKCU\\SOFTWARE\\Classes\\archipelago.snc.base\\shell\\open\\command /ve /d \""${exePath}" "%1"\" /f`);
+    childProcess.execSync(`reg add HKCU\\SOFTWARE\\Classes\\archipelago.snc.base\\shell\\open\\command /ve /d "\\\"${exePath}\\\" \\\"%1\\\"" /f`);
     childProcess.execSync(`reg add HKCU\\SOFTWARE\\Classes\\archipelago.snc.base\\DefaultIcon /ve /d "${exePath}" /f`);
 
     // Create registry entries for each game
@@ -97,7 +97,7 @@ if (require('electron-squirrel-startup')) {
       // Create virtual applications for each game
       const iconPath = path.join(__dirname, 'games', game, 'icon.ico');
       childProcess.execSync(`reg add HKCU\\SOFTWARE\\Classes\\archipelago.snc.${games[game].shortName} /ve /d "Archipelago ${game} Patch File" /f`);
-      childProcess.execSync(`reg add HKCU\\SOFTWARE\\Classes\\archipelago.snc.${games[game].shortName}\\shell\\open\\command /ve /d \""${exePath}" "%1"\" /f`);
+      childProcess.execSync(`reg add HKCU\\SOFTWARE\\Classes\\archipelago.snc.${games[game].shortName}\\shell\\open\\command /ve /d "\\\"${exePath}\\\" \\\"%1\\\"" /f`);
       childProcess.execSync(`reg add HKCU\\SOFTWARE\\Classes\\archipelago.snc.${games[game].shortName}\\DefaultIcon /ve /d "${iconPath}" /f`);
 
       games[game].extensions.forEach((ext) => {
