@@ -301,7 +301,7 @@ romData.DEATH_MODES = [0x12];
 romData.SAVEDATA_START = romData.WRAM_START + 0xF000;
 romData.SAVEDATA_SIZE = 0x500;
 
-romData.DEATH_LINK_ACTIVE_ADDR = romData.ROM_START + 0x18008D;
+romData.DEATH_LINK_ACTIVE_ADDR = romData.ROMNAME_START + 0x15;
 
 // Received items are sent to the client as an array when it connects to the server. This array is sent in the
 // same order every time. To survive a client restart, the index of the last item sent to the SNES is stored
