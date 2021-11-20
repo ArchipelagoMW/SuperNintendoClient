@@ -374,7 +374,7 @@ const connectToServer = (address, password = null) => {
             deathLinkPrimed = false;
             await new Promise((resolve) => setTimeout(resolve, 50));
             gameInstance.killPlayer().then(() => {
-              if (command.data.hasOwnProperty('cause')) {
+              if (command.data.hasOwnProperty('cause') && command.data.cause) {
                 appendConsoleMessage(command.data.cause);
                 return;
               }
