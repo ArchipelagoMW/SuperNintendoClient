@@ -32,6 +32,33 @@ const CLIENT_STATUS = {
   CLIENT_GOAL: 30,
 };
 
+/**
+ * Returns a randomly chosen DeathLink message
+ * @param playerName
+ * @returns {string}
+ */
+const getRandomDeathLinkMessage = (playerName) => {
+  const deathLinkMessages = [
+    `${playerName} has died, and took you with them.`,
+    `${playerName} has met with a terrible fate, and they felt like sharing.`,
+    `${playerName} dug a grave big enough for everyone to share.`,
+    `Oh look, everyone died! Blame ${playerName}.`,
+    `Don't worry ${playerName}, nobody saw that. Because they're dead too.`,
+    `Have you ever heard the tragedy of Darth ${playerName} the wise?`,
+    `Death comes for us all. Because ${playerName} invited him.`,
+    `Death-warps aren't an option right now, ${playerName}...`,
+    `${playerName} used DeathLink! It's super-effective!`,
+    `Run for your lives! ${playerName} is killing people!`,
+    `Is ${playerName} throwing for content?`,
+    `${playerName} took an arrow to the knee. Now, their adventuring days are over.`,
+    `${playerName} has won a free trip to the title screen, and they invited some friends!`,
+    `All ${playerName}'s base are belong to us.`,
+    `It's dangerous to go alone, ${playerName}. Take everyone with you.`,
+  ];
+
+  return deathLinkMessages[Math.floor(Math.random() * (deathLinkMessages.length))];
+};
+
 window.addEventListener('load', async () => {
   const game = await window.dataExchange.getGame();
   if (game) {
@@ -200,6 +227,8 @@ const connectToServer = (address, password = null) => {
                       time: new Date().getTime() / 1000,
                       source: players.find((player) =>
                         (player.team === playerTeam) && (player.slot === playerSlot)).alias,
+                      cause: getRandomDeathLinkMessage(players.find((player) =>
+                        (player.team === playerTeam) && (player.slot === playerSlot)).alias),
                     }
                   }]));
 
@@ -343,27 +372,14 @@ const connectToServer = (address, password = null) => {
             // Un-prime DeathLink to prevent sending a signal in response to this death, kill the player,
             // print a message to the console informing the player of who is responsible
             deathLinkPrimed = false;
-            await gameInstance.killPlayer();
-
-            // Might as well have some fun while we're here
-            const deathLinkMessages = [
-              `${command.data.source} has died, and took you with them.`,
-              `${command.data.source} has met with a terrible fate, and they felt like sharing.`,
-              `${command.data.source} dug a grave big enough for everyone to share.`,
-              `Oh look, everyone died! Blame ${command.data.source}.`,
-              `Don't worry ${command.data.source}, nobody saw that. Because they're dead too.`,
-              `Have you ever heard the tragedy of Darth ${command.data.source} the wise?`,
-              `Death comes for us all. Because ${command.data.source} invited him.`,
-              `Death-warps aren't an option right now, ${command.data.source}...`,
-              `${command.data.source} used DeathLink! It's super-effective!`,
-              `Run for your lives! ${command.data.source} is killing people!`,
-              `Is ${command.data.source} throwing for content?`,
-              `${command.data.source} took an arrow to the knee. Now, their adventuring days are over.`,
-              `${command.data.source} has won a free trip to the title screen, and they invited some friends!`,
-              `All ${command.data.source}'s base are belong to us.`,
-              `It's dangerous to go alone, ${command.data.source}. Take everyone with you.`,
-            ];
-            appendConsoleMessage(deathLinkMessages[Math.floor(Math.random() * (deathLinkMessages.length))]);
+            await new Promise((resolve) => setTimeout(resolve, 50));
+            gameInstance.killPlayer().then(() => {
+              if (command.data.hasOwnProperty('cause')) {
+                appendConsoleMessage(command.data.cause);
+                return;
+              }
+              appendConsoleMessage(getRandomDeathLinkMessage(command.data.source));
+            });
           }
 
           await gameInstance.Bounced(command);
