@@ -23,7 +23,12 @@ let reconnectTimeout = null;
 let snesInterval = null;
 let snesIntervalComplete = true;
 let lastBounce = 0;
-let deathLinkPrimed = true;
+
+// DeathLink Control
+const DEATH_LINK_ALIVE = 0;
+const DEATH_LINK_KILLING = 1;
+const DEATH_LINK_DEAD = 2;
+let deathLinkState = DEATH_LINK_ALIVE;
 
 const CLIENT_STATUS = {
   CLIENT_UNKNOWN: 0,
@@ -216,10 +221,18 @@ const connectToServer = (address, password = null) => {
 
             // DeathLink Logic
             if (await gameInstance.isDeathLinkEnabled()) {
-              // If the player is dead and DeathLink is primed, send a DeathLink signal
+              // Determine if the player is currently dead
               const playerIsDead = await gameInstance.isPlayerDead();
-              if (playerIsDead && deathLinkPrimed) {
+
+              // If the player is currently dead and the DeathLink state has not yet been updated to reflect that,
+              // send a DeathLink signal to the server
+              if (playerIsDead && (deathLinkState === DEATH_LINK_ALIVE)) {
+                // Update the DeathLink state to reflect the player's current status
+                deathLinkState = DEATH_LINK_DEAD;
+
+                // Send the DeathLink message
                 if (serverSocket && serverSocket.readyState === WebSocket.OPEN) {
+                  // Send the DeathLink signal
                   serverSocket.send(JSON.stringify([{
                     cmd: 'Bounce',
                     tags: ['DeathLink'],
@@ -231,15 +244,18 @@ const connectToServer = (address, password = null) => {
                         (player.team === playerTeam) && (player.slot === playerSlot)).alias),
                     }
                   }]));
-
-                  // Un-prime DeathLink to prevent sending multiple signals per death
-                  deathLinkPrimed = false;
                 }
+              }
+
+              // Keep sending the kill signal if the player is supposed to be dead. This prevents bugs where
+              // sometimes players will end up with zero health, but still be alive
+              if (!playerIsDead && (deathLinkState === DEATH_LINK_KILLING)) {
+                await gameInstance.killPlayer();
               }
 
               // If the player is alive, DeathLink signals may be sent again
               if (!playerIsDead) {
-                deathLinkPrimed = true;
+                deathLinkState = DEATH_LINK_ALIVE;
               }
             }
 
@@ -369,10 +385,11 @@ const connectToServer = (address, password = null) => {
             command.tags.includes('DeathLink') && // If those tags include DeathLink
             await gameInstance.isDeathLinkEnabled() // If DeathLink is enabled
           ) {
-            // Un-prime DeathLink to prevent sending a signal in response to this death, kill the player,
-            // print a message to the console informing the player of who is responsible
-            deathLinkPrimed = false;
+            // Update the DeathLink state and wait a split second
+            deathLinkState = DEATH_LINK_KILLING;
             await new Promise((resolve) => setTimeout(resolve, 50));
+
+            // Kill the player and print a message to the console informing the player of who is responsible
             gameInstance.killPlayer().then(() => {
               if (command.data.hasOwnProperty('cause') && command.data.cause) {
                 appendConsoleMessage(command.data.cause);
