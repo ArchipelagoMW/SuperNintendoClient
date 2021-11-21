@@ -228,9 +228,6 @@ const connectToServer = (address, password = null) => {
               // send a DeathLink signal to the server
               if (playerIsDead) {
                 if (deathLinkState === DEATH_LINK_ALIVE) {
-                  // Update the DeathLink state to reflect the player's current status
-                  deathLinkState = DEATH_LINK_DEAD;
-
                   // Send the DeathLink message
                   if (serverSocket && serverSocket.readyState === WebSocket.OPEN) {
                     // Send the DeathLink signal
@@ -390,18 +387,20 @@ const connectToServer = (address, password = null) => {
             command.tags.includes('DeathLink') && // If those tags include DeathLink
             await gameInstance.isDeathLinkEnabled() // If DeathLink is enabled
           ) {
-            // Update the DeathLink state and wait a split second
-            deathLinkState = DEATH_LINK_KILLING;
-            await new Promise((resolve) => setTimeout(resolve, 50));
+            if (deathLinkState === DEATH_LINK_ALIVE) {
+              // Update the DeathLink state and wait a split second
+              deathLinkState = DEATH_LINK_KILLING;
+              await new Promise((resolve) => setTimeout(resolve, 50));
 
-            // Kill the player and print a message to the console informing the player of who is responsible
-            gameInstance.killPlayer().then(() => {
-              if (command.data.hasOwnProperty('cause') && command.data.cause) {
-                appendConsoleMessage(command.data.cause);
-                return;
-              }
-              appendConsoleMessage(getRandomDeathLinkMessage(command.data.source));
-            });
+              // Kill the player and print a message to the console informing the player of who is responsible
+              gameInstance.killPlayer().then(() => {
+                if (command.data.hasOwnProperty('cause') && command.data.cause) {
+                  appendConsoleMessage(command.data.cause);
+                  return;
+                }
+                appendConsoleMessage(getRandomDeathLinkMessage(command.data.source));
+              });
+            }
           }
 
           await gameInstance.Bounced(command);
