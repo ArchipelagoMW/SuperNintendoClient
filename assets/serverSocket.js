@@ -29,6 +29,7 @@ const DEATH_LINK_ALIVE = 0;
 const DEATH_LINK_KILLING = 1;
 const DEATH_LINK_DEAD = 2;
 let deathLinkState = DEATH_LINK_ALIVE;
+let lastDeathLink = new Date().getTime();
 
 const CLIENT_STATUS = {
   CLIENT_UNKNOWN: 0,
@@ -231,6 +232,7 @@ const connectToServer = (address, password = null) => {
                   // Send the DeathLink message
                   if (serverSocket && serverSocket.readyState === WebSocket.OPEN) {
                     // Send the DeathLink signal
+                    lastDeathLink = (new Date().getTime() / 1000);
                     serverSocket.send(JSON.stringify([{
                       cmd: 'Bounce',
                       tags: ['DeathLink'],
@@ -242,6 +244,8 @@ const connectToServer = (address, password = null) => {
                           (player.team === playerTeam) && (player.slot === playerSlot)).alias),
                       }
                     }]));
+                    appendConsoleMessage(getRandomDeathLinkMessage(players.find((player) =>
+                      (player.team === playerTeam) && (player.slot === playerSlot)).alias));
                   }
                 }
 
@@ -387,9 +391,10 @@ const connectToServer = (address, password = null) => {
             command.tags.includes('DeathLink') && // If those tags include DeathLink
             await gameInstance.isDeathLinkEnabled() // If DeathLink is enabled
           ) {
-            if (deathLinkState === DEATH_LINK_ALIVE) {
+            if (deathLinkState === DEATH_LINK_ALIVE && (lastDeathLink > Number(new Date().getTime() / 1000) + 1)) {
               // Update the DeathLink state and wait a split second
               deathLinkState = DEATH_LINK_KILLING;
+              lastDeathLink = (new Date().getTime() / 1000);
               await new Promise((resolve) => setTimeout(resolve, 50));
 
               // Kill the player and print a message to the console informing the player of who is responsible
