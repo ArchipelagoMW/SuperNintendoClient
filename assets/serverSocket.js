@@ -226,25 +226,30 @@ const connectToServer = (address, password = null) => {
 
               // If the player is currently dead and the DeathLink state has not yet been updated to reflect that,
               // send a DeathLink signal to the server
-              if (playerIsDead && (deathLinkState === DEATH_LINK_ALIVE)) {
-                // Update the DeathLink state to reflect the player's current status
-                deathLinkState = DEATH_LINK_DEAD;
+              if (playerIsDead) {
+                if (deathLinkState === DEATH_LINK_ALIVE) {
+                  // Update the DeathLink state to reflect the player's current status
+                  deathLinkState = DEATH_LINK_DEAD;
 
-                // Send the DeathLink message
-                if (serverSocket && serverSocket.readyState === WebSocket.OPEN) {
-                  // Send the DeathLink signal
-                  serverSocket.send(JSON.stringify([{
-                    cmd: 'Bounce',
-                    tags: ['DeathLink'],
-                    data: {
-                      time: new Date().getTime() / 1000,
-                      source: players.find((player) =>
-                        (player.team === playerTeam) && (player.slot === playerSlot)).alias,
-                      cause: getRandomDeathLinkMessage(players.find((player) =>
-                        (player.team === playerTeam) && (player.slot === playerSlot)).alias),
-                    }
-                  }]));
+                  // Send the DeathLink message
+                  if (serverSocket && serverSocket.readyState === WebSocket.OPEN) {
+                    // Send the DeathLink signal
+                    serverSocket.send(JSON.stringify([{
+                      cmd: 'Bounce',
+                      tags: ['DeathLink'],
+                      data: {
+                        time: new Date().getTime() / 1000,
+                        source: players.find((player) =>
+                          (player.team === playerTeam) && (player.slot === playerSlot)).alias,
+                        cause: getRandomDeathLinkMessage(players.find((player) =>
+                          (player.team === playerTeam) && (player.slot === playerSlot)).alias),
+                      }
+                    }]));
+                  }
                 }
+
+                // If the player is dead, the DeathLink state must reflect that
+                deathLinkState = DEATH_LINK_DEAD;
               }
 
               // Keep sending the kill signal if the player is supposed to be dead. This prevents bugs where
