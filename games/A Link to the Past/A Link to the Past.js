@@ -33,10 +33,14 @@ class GameInstance {
   authenticate = async () => {
       // Build tags used in authentication below
     const tags = ['Super Nintendo Client'];
-    if (this.deathLinkEnabled) { tags.push('DeathLink'); }
+    if (await this.isDeathLinkEnabled(true)) { tags.push('DeathLink'); }
 
     // Authenticate with the server
     const romName = await readFromAddress(romData.ROMNAME_START, romData.ROMNAME_SIZE);
+    if (romName === null || !btoa(new TextDecoder().decode(romName))) {
+      appendConsoleMessage('Error while reading rom name. Please re-attempt to connect.');
+      return;
+    }
     const connectionData = {
       cmd: 'Connect',
       game: 'A Link to the Past',
@@ -623,13 +627,13 @@ class GameInstance {
    * Determine if DeathLink is enabled
    * @returns {Promise<boolean>}
    */
-  isDeathLinkEnabled = async () => {
+  isDeathLinkEnabled = async (reCheck = false) => {
     // If the state of DeathLink is already known, do no re-query the ROM
-    if (this.deathLinkEnabled !== null) { return this.deathLinkEnabled; }
+    if (this.deathLinkEnabled !== null && (!reCheck)) { return this.deathLinkEnabled; }
 
     // Determine if DeathLink is enabled
     const deathLinkFlag = await readFromAddress(romData.DEATH_LINK_ACTIVE_ADDR, 1);
-    this.deathLinkEnabled = (parseInt(deathLinkFlag[0], 10) === 1);
+    this.deathLinkEnabled = (parseInt(deathLinkFlag[0], 10) === 1) & 0b1;
     return this.deathLinkEnabled;
   };
 
