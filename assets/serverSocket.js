@@ -30,6 +30,7 @@ const DEATH_LINK_KILLING = 1;
 const DEATH_LINK_DEAD = 2;
 let deathLinkState = DEATH_LINK_ALIVE;
 let lastDeathLink = new Date().getTime();
+const DEATH_LINK_COOLDOWN = 3; // Seconds
 
 const CLIENT_STATUS = {
   CLIENT_UNKNOWN: 0,
@@ -228,7 +229,10 @@ const connectToServer = (address, password = null) => {
               // If the player is currently dead and the DeathLink state has not yet been updated to reflect that,
               // send a DeathLink signal to the server
               if (playerIsDead) {
-                if (deathLinkState === DEATH_LINK_ALIVE) {
+                if (
+                  (deathLinkState === DEATH_LINK_ALIVE) && // Player was last known to be alive
+                  ((lastDeathLink + DEATH_LINK_COOLDOWN) < (new Date().getTime() / 1000)) // Cooldown has passed
+                ) {
                   // Send the DeathLink message
                   if (serverSocket && serverSocket.readyState === WebSocket.OPEN) {
                     // Send the DeathLink signal
@@ -391,7 +395,10 @@ const connectToServer = (address, password = null) => {
             command.tags.includes('DeathLink') && // If those tags include DeathLink
             await gameInstance.isDeathLinkEnabled() // If DeathLink is enabled
           ) {
-            if (deathLinkState === DEATH_LINK_ALIVE && (lastDeathLink > Number(new Date().getTime() / 1000) + 1)) {
+            if (
+              (deathLinkState === DEATH_LINK_ALIVE) && // The player was last known to be alive
+              ((lastDeathLink + DEATH_LINK_COOLDOWN) < (new Date().getTime() / 1000)) // Cooldown has passed
+            ) {
               // Update the DeathLink state and wait a split second
               deathLinkState = DEATH_LINK_KILLING;
               lastDeathLink = (new Date().getTime() / 1000);
