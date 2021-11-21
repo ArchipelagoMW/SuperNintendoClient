@@ -241,7 +241,7 @@ const connectToServer = (address, password = null) => {
                       cmd: 'Bounce',
                       tags: ['DeathLink'],
                       data: {
-                        time: new Date().getTime() / 1000,
+                        time: lastDeathLink,
                         source: players.find((player) =>
                           (player.team === playerTeam) && (player.slot === playerSlot)).alias,
                         cause: getRandomDeathLinkMessage(players.find((player) =>
