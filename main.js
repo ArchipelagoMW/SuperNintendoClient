@@ -300,9 +300,7 @@ app.whenReady().then(async () => {
   // Otherwise, display the main window
   else { createMainWindow(); }
 
-  app.on('activate', () => {
-    console.log('activate');
-  });
+  app.on('activate', () => {});
 
   // Special logic to determine what to do when all windows have closed
   app.on('window-all-closed', () => {

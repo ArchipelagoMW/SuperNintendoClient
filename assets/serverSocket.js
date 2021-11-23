@@ -30,7 +30,7 @@ const DEATH_LINK_KILLING = 1;
 const DEATH_LINK_DEAD = 2;
 let deathLinkState = DEATH_LINK_ALIVE;
 let lastDeathLink = new Date().getTime();
-const DEATH_LINK_COOLDOWN = 3; // Seconds
+const DEATH_LINK_COOLDOWN = 3000; // Milliseconds
 
 const CLIENT_STATUS = {
   CLIENT_UNKNOWN: 0,
@@ -231,17 +231,20 @@ const connectToServer = (address, password = null) => {
               if (playerIsDead) {
                 if (
                   (deathLinkState === DEATH_LINK_ALIVE) && // Player was last known to be alive
-                  ((lastDeathLink + DEATH_LINK_COOLDOWN) < (new Date().getTime() / 1000)) // Cooldown has passed
+                  ((lastDeathLink + DEATH_LINK_COOLDOWN) < new Date().getTime()) // Cooldown has passed
                 ) {
                   // Send the DeathLink message
                   if (serverSocket && serverSocket.readyState === WebSocket.OPEN) {
+                    // Set the state to DEAD before sending the message
+                    deathLinkState = DEATH_LINK_DEAD;
+
                     // Send the DeathLink signal
-                    lastDeathLink = (new Date().getTime() / 1000);
+                    lastDeathLink = new Date().getTime();
                     serverSocket.send(JSON.stringify([{
                       cmd: 'Bounce',
                       tags: ['DeathLink'],
                       data: {
-                        time: lastDeathLink,
+                        time: (lastDeathLink / 1000),
                         source: players.find((player) =>
                           (player.team === playerTeam) && (player.slot === playerSlot)).alias,
                         cause: getRandomDeathLinkMessage(players.find((player) =>
@@ -257,15 +260,23 @@ const connectToServer = (address, password = null) => {
                 deathLinkState = DEATH_LINK_DEAD;
               }
 
-              // Keep sending the kill signal if the player is supposed to be dead. This prevents bugs where
-              // sometimes players will end up with zero health, but still be alive
-              if (!playerIsDead && (deathLinkState === DEATH_LINK_KILLING)) {
-                await gameInstance.killPlayer();
-              }
-
-              // If the player is alive, DeathLink signals may be sent again
               if (!playerIsDead) {
-                deathLinkState = DEATH_LINK_ALIVE;
+                switch (deathLinkState) {
+                  case DEATH_LINK_ALIVE:
+                    // Do nothing, this is fine
+                    break;
+
+                  case DEATH_LINK_KILLING:
+                    // Keep sending the kill signal if the player is supposed to be dead. This prevents bugs where
+                    // sometimes players will end up with zero health, but still be alive
+                    await gameInstance.killPlayer();
+                    break;
+
+                  case DEATH_LINK_DEAD:
+                    // If the player is alive, DeathLink signals may be sent again
+                    deathLinkState = DEATH_LINK_ALIVE;
+                    break;
+                }
               }
             }
 
@@ -387,7 +398,6 @@ const connectToServer = (address, password = null) => {
         case 'Bounced':
           // This command can be used for a variety of things. Currently, it is used for keep-alive and DeathLink.
           // keep-alive packets can be safely ignored
-          console.log(command);
 
           // DeathLink handling
           if (
@@ -397,11 +407,11 @@ const connectToServer = (address, password = null) => {
           ) {
             if (
               (deathLinkState === DEATH_LINK_ALIVE) && // The player was last known to be alive
-              ((lastDeathLink + DEATH_LINK_COOLDOWN) < (new Date().getTime() / 1000)) // Cooldown has passed
+              ((lastDeathLink + DEATH_LINK_COOLDOWN) < new Date().getTime()) // Cooldown has passed
             ) {
               // Update the DeathLink state and wait a split second
               deathLinkState = DEATH_LINK_KILLING;
-              lastDeathLink = (new Date().getTime() / 1000);
+              lastDeathLink = new Date().getTime();
               await new Promise((resolve) => setTimeout(resolve, 50));
 
               // Kill the player and print a message to the console informing the player of who is responsible

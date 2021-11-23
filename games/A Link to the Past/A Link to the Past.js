@@ -336,6 +336,8 @@ class GameInstance {
    * @returns {Promise<unknown>}
    */
   runClientLogic = () => new Promise(async (resolve, reject) => {
+    const timeout = setTimeout(() => reject('Timeout'), 3000);
+
     try{
       // Fetch game mode
       const gameMode = await readFromAddress(romData.WRAM_START + 0x10, 0x01);
@@ -346,6 +348,7 @@ class GameInstance {
         !romData.ENDGAME_MODES.includes(modeValue) &&
         !romData.DEATH_MODES.includes(modeValue)
       )) {
+        clearTimeout(timeout);
         return resolve();
       }
 
@@ -365,6 +368,7 @@ class GameInstance {
           this.gameCompleted = true;
         }
 
+        clearTimeout(timeout);
         return resolve();
       }
 
@@ -570,6 +574,7 @@ class GameInstance {
       }
 
       // SNES interaction complete for this loop
+      clearTimeout(timeout);
       resolve();
     } catch (err) {
       // Reject with whatever went wrong
