@@ -1,3 +1,36 @@
+/*
+Game Modes:
+http://alttp.run/hacking/index.php?title=RAM:_Bank_0x7E:_Page_0x00
+0x00 = Triforce / Zelda startup screens
+0x01 = Game Select screen
+0x02 = Copy Player Mode
+0x03 = Erase Player Mode
+0x04 = Name Player Mode
+0x05 = Loading Game Mode
+0x06 = Pre Dungeon Mode
+0x07 = Dungeon Mode
+0x08 = Pre Overworld Mode
+0x09 = Overworld Mode
+0x0A = Pre Overworld Mode (special overworld)
+0x0B = Overworld Mode (special overworld)
+0x0C = ???? I think we can declare this one unused, almost with complete certainty.
+0x0D = Blank Screen
+0x0E = Text Mode/Item Screen/Map
+0x0F = Closing Spotlight
+0x10 = Opening Spotlight
+0x11 = Happens when you fall into a hole from the OW.
+0x12 = Death Mode
+0x13 = Boss Victory Mode (refills stats)
+0x14 = History Mode
+0x15 = Module for Magic Mirror
+0x16 = Module for refilling stats after boss.
+0x17 = Restart mode (save and quit)
+0x18 = Ganon exits from Agahnim's body. Chase Mode.
+0x19 = Triforce Room scene
+0x1A = End sequence
+0x1B = Screen to select where to start from (House, sanctuary, etc.)
+*/
+
 const romData = {
   ROM_START: 0x000000,
   WRAM_START: 0xF50000,
