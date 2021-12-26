@@ -23,7 +23,7 @@ It must be named the same as your game's key from the `games.json` file.
 ## Create `Game Name.js`
 A game file which contains a class called `GameInstance`, which is used to provide functions which enable the client to
 interface with your game. It must be named the same as your game's key from the `games.json` file. This file will be
-loaded and used by SNC. You will find a template game file in the `games` directory named `GameInstance.template.js`.
+loaded and used by SNC. You will find a template game file in the `games/Example Game` directory named `GameInstance.template.js`.
 
 ## Create `romData.js`
 This file must be named exactly `romData.js`. It should contain data about memory addresses in your ROM. This file
