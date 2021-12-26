@@ -4,6 +4,7 @@
  */
 class GameInstance {
   /** Instance Variables */
+  gameName = 'Game Name';
 
   constructor() {
     // Maybe do something here
@@ -18,11 +19,11 @@ class GameInstance {
     const tags = ['Super Nintendo Client'];
 
     // Authenticate with the server
-    const romName = await readFromAddress(ROMNAME_START, ROMNAME_SIZE);
+    const romName = await readFromAddress(romData.ROMNAME_START, romData.ROMNAME_SIZE);
     const connectionData = {
       cmd: 'Connect',
-      game: 'Game Name', // CHANGE ME
-      name: 'Probably the ROM name', // CHANGE ME
+      game: this.gameName,
+      name: romName,
       uuid: getClientId(),
       tags: tags,
       password: serverPassword,
@@ -128,13 +129,31 @@ class GameInstance {
    * Returns the name of an item based on its ID
    * @param itemId
    */
-  getItemById = (itemId) => apItemsById['Super Metroid'][itemId];
+  getItemById = (itemId) => apItemsById[this.gameName][itemId];
 
   /**
    * Returns the name of a location based on its ID
    * @param locationId
    */
-  getLocationById = (locationId) => apLocationsById['Super Metroid'][locationId];
+  getLocationById = (locationId) => apLocationsById[this.gameName][locationId];
+
+  /**
+   * Determine if DeathLink is enabled
+   * @returns {Promise<boolean>}
+   */
+  isDeathLinkEnabled = async () => {};
+
+  /**
+   * Cause the player to die
+   * @returns {Promise<void>}
+   */
+  killPlayer = async () => {};
+
+  /**
+   * Determine if the player is currently dead
+   * @returns {Promise<boolean>}
+   */
+  isPlayerDead = async () => {};
 }
 
 // Notify the client the game logic has been loaded

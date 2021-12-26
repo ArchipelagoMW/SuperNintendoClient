@@ -43,7 +43,7 @@ class GameInstance {
     }
     const connectionData = {
       cmd: 'Connect',
-      game: 'A Link to the Past',
+      game: this.gameName,
       name: btoa(new TextDecoder().decode(romName)), // Base64 encoded rom name
       uuid: getClientId(),
       tags: tags,

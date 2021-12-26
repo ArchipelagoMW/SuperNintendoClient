@@ -31,7 +31,7 @@ class GameInstance {
     const romName = await readFromAddress(romData.ROMNAME_START, romData.ROMNAME_SIZE);
     const connectionData = {
       cmd: 'Connect',
-      game: 'Super Metroid',
+      game: this.gameName,
       name: btoa(new TextDecoder().decode(romName)), // Base64 encoded rom name
       uuid: getClientId(),
       tags: tags,
