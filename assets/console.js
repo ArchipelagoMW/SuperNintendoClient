@@ -117,7 +117,7 @@ window.addEventListener('load', () => {
 
   const consoleWindow = document.getElementById('console-output-wrapper');
   consoleWindow.addEventListener('scroll', (evt) => {
-    autoScrollPaused = (consoleWindow.scrollTop + consoleWindow.offsetHeight) < consoleWindow.scrollHeight;
+    autoScrollPaused = Math.ceil(consoleWindow.scrollTop + consoleWindow.offsetHeight) < consoleWindow.scrollHeight;
   });
 });
 
