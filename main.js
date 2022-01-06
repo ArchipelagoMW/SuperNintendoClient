@@ -10,6 +10,9 @@ const md5 = require('md5');
 const SNI = require('./SNI');
 const games = require("./games/games.json");
 
+// Prevent Chromium from lowering the priority of the renderer process
+app.commandLine.appendSwitch('disable-renderer-backgrounding');
+
 // Main process and window management
 let gamePromptWindow = null;
 let mainWindow = null;
@@ -166,6 +169,7 @@ const createMainWindow = () => {
       nodeIntegration: false,
       contextIsolation: true,
       enableRemoteModule: false,
+      backgroundThrottling: false,
       preload: path.join(__dirname, 'preloadMainWindow.js'),
     },
   });
