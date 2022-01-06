@@ -1,6 +1,6 @@
 {
   "name": "super-nintendo-client",
-  "version": "0.10.4",
+  "version": "0.10.5",
   "author": "Chris Wilson",
   "description": "A Super Nintendo Client designed to allow multiple games to connect to an Archipelago server.",
   "license": "MIT",
