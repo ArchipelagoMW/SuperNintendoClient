@@ -3,11 +3,16 @@
  * Each method name should be the same as the `cmd`.
  */
 class GameInstance {
+  /** Constants */
+  ROM_PLAYER_LIMIT = 65535;
+
   /** Instance Variables */
   gameName = 'Super Metroid';
 
-  // Has DeathLink been enabled?
+  // Has DeathLink been enabled, and if the player has reserve tanks, can they survive it?
   deathLinkEnabled = null;
+  deathLinkSurviveWithReserve = null;
+  deathLinkFakeDeath = false; // See comments in killPlayer
 
   // Item tracking
   itemsReceived = [];
@@ -223,7 +228,7 @@ class GameInstance {
         const itemId = this.itemsReceived[receivedItemCount].item - romData.ITEMS_START_ID;
 
         // In the ROM, "Archipelago" is prepended to the list of players, so it is the first entry in the array
-        const playerId = this.itemsReceived[receivedItemCount].player === 0 ?
+        const playerId = (this.itemsReceived[receivedItemCount].player > this.ROM_PLAYER_LIMIT) ?
           0 : this.itemsReceived[receivedItemCount].player;
 
         // Send newly acquired item data to the ROM
@@ -287,6 +292,7 @@ class GameInstance {
     // Determine if DeathLink is enabled
     const deathLinkFlag = await readFromAddress(romData.DEATH_LINK_ACTIVE_ADDR, 1);
     this.deathLinkEnabled = parseInt(deathLinkFlag[0], 10) === 1;
+    this.deathLinkSurviveWithReserve = !!(parseInt(deathLinkFlag[0], 10) & 0b10);
     return this.deathLinkEnabled;
   };
 
@@ -295,6 +301,21 @@ class GameInstance {
    * @returns {Promise<void>}
    */
   killPlayer = async () => {
+    // If the player has not enabled the flag which allows them to survive a DeathLink if reserve tanks
+    // are non-empty, we empty the reserve tanks
+    if (!this.deathLinkSurviveWithReserve) {
+      const emptyReserveTankData = new Uint8Array(2);
+      emptyReserveTankData.set([0, 0]);
+      await writeToAddress(0x09D6, emptyReserveTankData);
+    } else {
+      // The player is allowed to survive with reserve tanks. This prevents isPlayerDead from reporting her
+      // death. As a result, the client logic will continue to try to kill her because the deathLinkState
+      // will never become DEATH_LINK_DEAD. To account for this, if the player is allowed to survive with
+      // reserve tanks, we set a flag which will cause isPlayerDead to report a player death, even though
+      // Samus is alive.
+      this.deathLinkFakeDeath = true;
+    }
+    // Empty the player's health
     const killSamusData = new Uint8Array(2);
     killSamusData.set([0, 0]);
     await writeToAddress(romData.WRAM_START + 0x09C2, killSamusData);
@@ -305,6 +326,13 @@ class GameInstance {
    * @returns {Promise<boolean>}
    */
   isPlayerDead = async () => {
+    // If the player was previously allowed to survive a DeathLink because they have non-empty reserve tanks,
+    // this function must report her death, or else the client will continue to try to kill her.
+    if (this.deathLinkFakeDeath) {
+      this.deathLinkFakeDeath = false;
+      return true;
+    }
+
     // Fetch the current game mode and determine if Samus is currently dead
     const gameMode = await readFromAddress(romData.WRAM_START + 0x0998, 1);
     return romData.DEATH_MODES.includes(gameMode[0]);
