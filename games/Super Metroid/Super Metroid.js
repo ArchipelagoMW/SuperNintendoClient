@@ -306,7 +306,7 @@ class GameInstance {
     if (!this.deathLinkSurviveWithReserve) {
       const emptyReserveTankData = new Uint8Array(2);
       emptyReserveTankData.set([0, 0]);
-      await writeToAddress(0x09D6, emptyReserveTankData);
+      await writeToAddress(romData.WRAM_START + 0x09D6, emptyReserveTankData);
     } else {
       // The player is allowed to survive with reserve tanks. This prevents isPlayerDead from reporting her
       // death. As a result, the client logic will continue to try to kill her because the deathLinkState
