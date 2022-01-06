@@ -281,7 +281,7 @@ app.whenReady().then(async () => {
       const diffFilePath = path.join(__dirname, 'patch.bsdiff');
       const patchFileExt = patchFilePath.split('.').pop();
       const outputFilePath = path.join(path.dirname(patchFilePath),
-        `${path.basename(patchFilePath).substr(0, path.basename(patchFilePath).length - patchFileExt.length)}.sfc`);
+        `${path.basename(patchFilePath).substr(0, path.basename(patchFilePath).length - patchFileExt.length - 1)}.sfc`);
       const apbpBuffer = await lzma.decompress(fs.readFileSync(patchFilePath));
       const apbp = yaml.load(apbpBuffer);
       sharedData.apServerAddress = apbp.meta.server ? apbp.meta.server : null;
