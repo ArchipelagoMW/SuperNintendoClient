@@ -42,6 +42,7 @@ class GameInstance {
       tags: tags,
       password: serverPassword,
       version: ARCHIPELAGO_PROTOCOL_VERSION,
+      items_handling: 0b001,
     };
     serverSocket.send(JSON.stringify([connectionData]));
   };

@@ -49,6 +49,7 @@ class GameInstance {
       tags: tags,
       password: serverPassword,
       version: ARCHIPELAGO_PROTOCOL_VERSION,
+      items_handling: 0b001,
     };
     serverSocket.send(JSON.stringify([connectionData]));
   };
@@ -186,6 +187,7 @@ class GameInstance {
       if (this.itemsReceived.find((ir) =>
         ir.item === item.item && ir.location === item.location && ir.player === item.player
       )) { return; }
+
       this.itemsReceived.push(item);
     });
   };
