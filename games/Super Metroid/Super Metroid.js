@@ -205,7 +205,6 @@ class GameInstance {
     // If new locations have been checked, send those checks to the AP server
     if (newLocationChecks.length > 0) {
       if (serverSocket && serverSocket.readyState === WebSocket.OPEN) {
-        // TODO: Write this function
         this.sendLocationChecks(newLocationChecks);
 
         // Update the ROM with the index of the latest item which has been acknowledged by the client
