@@ -645,10 +645,37 @@ class GameInstance {
   };
 
   /**
+   * Determine if player is in a killable state
+   * Link receives hearts slowly after collecting a crystal/pendant. He is also invincible during the associated
+   * cutscene. This function checks for the presence of the invincibility flag, then makes sure the player's health
+   * is in a stable position. If the player is invincible, or their health is changing rapidly, they are not
+   * considered to be in a killable state.
+   * @returns {Promise<boolean>}
+   */
+  isPlayerKillable = async () => {
+    try {
+      // Fetch invincibility flag and two health samples a short time apart
+      const invincible = await readFromAddress(romData.WRAM_START + 0x037B, 0x01);
+      const healthValueOne = readFromAddress(romData.WRAM_START + 0xF36D, 0x01);
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      const healthValueTwo = readFromAddress(romData.WRAM_START + 0xF36D, 0x01);
+
+      // If Link is not invincible, and the health samples match, the player is killable
+      return (!invincible[0] && (healthValueOne[0] === healthValueTwo[0]));
+    } catch (error) {
+      // Any SNI Promise rejections should report the player as not killable
+      return false;
+    }
+  };
+
+  /**
    * Cause the player to die
    * @returns {Promise<void>}
    */
   killPlayer = async () => {
+    const isPlayerKillable = await this.isPlayerKillable();
+    if (!isPlayerKillable) return this.killPlayer();
+
     // Set the current health value to zero
     let healthValue = new Uint8Array(1);
     healthValue.set([0]);
