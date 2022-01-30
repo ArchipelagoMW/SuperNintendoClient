@@ -350,6 +350,23 @@ try{
   ipcMain.handle('readFromAddress', (event, args) => sni.readFromAddress.apply(sni, args));
   ipcMain.handle('writeToAddress', (event, args) => sni.writeToAddress.apply(sni, args));
 
+  // Version checking
+  ipcMain.handle('clientUpdatePrompt', async (event, tag) => {
+    const versionUpdate = await dialog.showMessageBox(null, {
+      type: 'info',
+      title: 'A Client Update is Available',
+      message: 'A version of the Super Nintendo Client is available. It is recommended to upgrade, as outdated ' +
+        'versions may contain bugs or be incompatible with new Archipelago features.',
+      buttons: ['Do not update', 'Open downloads page'],
+    });
+
+    // If the user clicked on "Skip Patching", don't prompt them anymore
+    if (!versionUpdate.response) { return; }
+
+    const open = require('open');
+    open(`https://github.com/ArchipelagoMW/SuperNintendoClient/releases/tag/${tag}`);
+  });
+
   // General data exchange
   ipcMain.handle('setGame', (event, args) => {
     game = args[0];

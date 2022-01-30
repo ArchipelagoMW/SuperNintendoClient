@@ -67,6 +67,15 @@ const getRandomDeathLinkMessage = (playerName) => {
 };
 
 window.addEventListener('load', async () => {
+  // Check for client updates
+  const versionUrl = 'https://api.github.com/repos/ArchipelagoMW/SuperNintendoClient/releases/latest';
+  fetch(new Request(versionUrl)).then(async (response) => {
+    const data = await response.json();
+    if (data.tag_name !== `v${CLIENT_VERSION.major}.${CLIENT_VERSION.minor}.${CLIENT_VERSION.patch}`) {
+      await window.versioning.clientUpdatePrompt(data.tag_name);
+    }
+  });
+
   const game = await window.dataExchange.getGame();
   if (game) {
     const gameInstanceScript = document.createElement('script');

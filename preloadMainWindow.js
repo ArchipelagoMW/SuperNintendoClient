@@ -24,6 +24,11 @@ contextBridge.exposeInMainWorld('sni', {
   writeToAddress: (address, data) => ipcRenderer.invoke('writeToAddress', [address, data]),
 });
 
+// Version checking
+contextBridge.exposeInMainWorld('versioning', {
+  clientUpdatePrompt: (tag) => ipcRenderer.invoke('clientUpdatePrompt', tag),
+});
+
 // General data exchange
 contextBridge.exposeInMainWorld('dataExchange', {
   getGame: () => ipcRenderer.invoke('getGame'),
